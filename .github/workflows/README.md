@@ -1,25 +1,19 @@
-# GitHub Actions Setup
+# GitHub Actions
 
-## Daily Test Suite
+CI runs on push and pull requests against `main`. No network or API keys are
+involved.
 
-The `daily-tests.yml` workflow runs the test suite every day at midnight GMT+1 (23:00 UTC).
+## Workflows
 
-### Required Secrets
+- `golangci-lint.yml` — runs `golangci-lint`.
+- `build.yml` — runs `go build` and `go vet`.
 
-To enable Slack notifications, you need to add the following secret to your repository:
+## Provider tests
 
-1. Go to Settings → Secrets and variables → Actions
-2. Click "New repository secret"
-3. Add `SLACK_WEBHOOK_URL` with your Slack webhook URL
+The `providers/*_test.go` tests make live API calls and skip when their
+provider's API key environment variable is unset. Run them locally with the
+keys set, e.g.:
 
-### Getting a Slack Webhook URL
-
-1. Go to https://api.slack.com/apps
-2. Create a new app or select an existing one
-3. Enable "Incoming Webhooks" feature
-4. Add a new webhook to your desired channel
-5. Copy the webhook URL
-
-### Manual Trigger
-
-You can also trigger the workflow manually from the Actions tab using the "Run workflow" button.
+```
+just test-anthropic
+```
