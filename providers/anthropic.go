@@ -367,7 +367,19 @@ func (a Anthropic) doRequest(
 			Type string `json:"type"`
 			Text string `json:"text"`
 		} `json:"delta"`
+		Message struct {
+			Usage struct {
+				InputTokens  int `json:"input_tokens"`
+				OutputTokens int `json:"output_tokens"`
+			} `json:"usage"`
+		} `json:"message"`
+		Usage struct {
+			InputTokens  int `json:"input_tokens"`
+			OutputTokens int `json:"output_tokens"`
+		} `json:"usage"`
 	}
+
+	var inputTokens, outputTokens int
 
 	for isRunning {
 		if chunks == 0 && time.Since(now).Seconds() > 3.0 {
@@ -400,6 +412,15 @@ func (a Anthropic) doRequest(
 					}
 				}
 
+				// Anthropic reports usage across two events: input_tokens in
+				// message_start, cumulative output_tokens in message_delta.
+				if event.Type == "message_start" && event.Message.Usage.InputTokens > 0 {
+					inputTokens = event.Message.Usage.InputTokens
+				}
+				if event.Usage.OutputTokens > 0 {
+					outputTokens = event.Usage.OutputTokens
+				}
+
 				chunks++
 			}
 		}
@@ -425,8 +446,9 @@ func (a Anthropic) doRequest(
 		Model:   req.Model.GetName(),
 		// TODO: try to standardize this across providers
 		Usage: response.Usage{
-			// CompletionTokens: lastResponse.Usage.OutputTokens,
-			// PromptTokens:     lastResponse.Usage.InputTokens,
+			PromptTokens:     inputTokens,
+			CompletionTokens: outputTokens,
+			TotalTokens:      inputTokens + outputTokens,
 		},
 		RawRequest:  body,
 		RawResponse: rawResp,
