@@ -18,7 +18,7 @@ import (
 	"github.com/JazzJackrabbit/heimdall/response"
 )
 
-const anthropicBaseUrl = "https://api.anthropic.com/v1"
+var anthropicBaseUrl = "https://api.anthropic.com/v1"
 
 type Anthropic struct {
 	apiKeys []string

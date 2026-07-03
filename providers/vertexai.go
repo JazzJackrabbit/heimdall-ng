@@ -505,63 +505,60 @@ func (v *VertexAI) doRequest(
 	var usage response.Usage
 
 	now := time.Now()
-	isAnalyzing := true
 
-	for isAnalyzing {
-		for streamPart, err := range stream {
-			if err != nil {
-				return response.Completion{}, 0, err
+	for streamPart, err := range stream {
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+		if len(streamPart.Candidates) == 0 &&
+			time.Since(now).Seconds() > 3.0 {
+			return response.Completion{}, 0, context.Canceled
+		}
+
+		// Vertex reports cumulative usage in UsageMetadata; the final
+		// chunk carries the complete counts and may have no content
+		// parts, so capture usage before the parts gate below.
+		if streamPart.UsageMetadata != nil &&
+			streamPart.UsageMetadata.TotalTokenCount > 0 {
+			usage = response.Usage{
+				PromptTokens: int(
+					streamPart.UsageMetadata.PromptTokenCount,
+				),
+				CompletionTokens: int(
+					streamPart.UsageMetadata.CandidatesTokenCount,
+				),
+				TotalTokens: int(
+					streamPart.UsageMetadata.TotalTokenCount,
+				),
 			}
-			if len(streamPart.Candidates) == 0 &&
-				time.Since(now).Seconds() > 3.0 {
-				return response.Completion{}, 0, context.Canceled
-			}
+		}
 
-			if len(streamPart.Candidates) > 0 &&
-				len(streamPart.Candidates[0].Content.Parts) > 0 {
-				// Iterate through all parts to find text or image data
-				for _, part := range streamPart.Candidates[0].Content.Parts {
-					// Handle image data for image generation models
-					if part.InlineData != nil && len(part.InlineData.Data) > 0 {
-						imageData := base64.StdEncoding.EncodeToString(part.InlineData.Data)
-						_, err := fullContent.WriteString(imageData)
-						if err != nil {
+		if len(streamPart.Candidates) > 0 &&
+			len(streamPart.Candidates[0].Content.Parts) > 0 {
+			// Iterate through all parts to find text or image data
+			for _, part := range streamPart.Candidates[0].Content.Parts {
+				// Handle image data for image generation models
+				if part.InlineData != nil && len(part.InlineData.Data) > 0 {
+					imageData := base64.StdEncoding.EncodeToString(part.InlineData.Data)
+					_, err := fullContent.WriteString(imageData)
+					if err != nil {
+						return response.Completion{}, 0, err
+					}
+					if chunkHandler != nil {
+						if err := chunkHandler(imageData); err != nil {
 							return response.Completion{}, 0, err
-						}
-						if chunkHandler != nil {
-							if err := chunkHandler(imageData); err != nil {
-								return response.Completion{}, 0, err
-							}
-						}
-					} else if part.Text != "" && part.Text != "Analyzing" {
-						// Handle text responses
-						_, err := fullContent.WriteString(part.Text)
-						if err != nil {
-							return response.Completion{}, 0, err
-						}
-
-						if chunkHandler != nil {
-							if err := chunkHandler(part.Text); err != nil {
-								return response.Completion{}, 0, err
-							}
 						}
 					}
-				}
+				} else if part.Text != "" && part.Text != "Analyzing" {
+					// Handle text responses
+					_, err := fullContent.WriteString(part.Text)
+					if err != nil {
+						return response.Completion{}, 0, err
+					}
 
-				if streamPart.Candidates[0].FinishReason == "STOP" {
-					isAnalyzing = false
-
-					if streamPart.UsageMetadata != nil {
-						usage = response.Usage{
-							PromptTokens: int(
-								streamPart.UsageMetadata.PromptTokenCount,
-							),
-							CompletionTokens: int(
-								streamPart.UsageMetadata.CandidatesTokenCount,
-							),
-							TotalTokens: int(
-								streamPart.UsageMetadata.TotalTokenCount,
-							),
+					if chunkHandler != nil {
+						if err := chunkHandler(part.Text); err != nil {
+							return response.Completion{}, 0, err
 						}
 					}
 				}

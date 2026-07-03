@@ -20,7 +20,7 @@ import (
 	"github.com/JazzJackrabbit/heimdall/response"
 )
 
-const perplexityBaseUrl = "https://api.perplexity.ai/chat/completions"
+var perplexityBaseUrl = "https://api.perplexity.ai/chat/completions"
 
 type Perplexity struct {
 	apiKeys []string

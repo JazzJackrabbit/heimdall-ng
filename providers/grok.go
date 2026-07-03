@@ -19,7 +19,7 @@ import (
 	"github.com/JazzJackrabbit/heimdall/response"
 )
 
-const grokBaseURL = "https://api.x.ai/v1"
+var grokBaseURL = "https://api.x.ai/v1"
 
 type Grok struct {
 	apiKeys []string

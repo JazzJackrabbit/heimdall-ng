@@ -20,7 +20,7 @@ import (
 	"github.com/JazzJackrabbit/heimdall/response"
 )
 
-const googleBaseURL = "https://generativelanguage.googleapis.com/v1beta/models/%s:streamGenerateContent?alt=sse&key=%s"
+var googleBaseURL = "https://generativelanguage.googleapis.com/v1beta/models/%s:streamGenerateContent?alt=sse&key=%s"
 
 type Google struct {
 	apiKeys []string
@@ -910,8 +910,11 @@ func (g Google) doRequest(
 
 		chunks++
 
-		if len(responseChunk.Candidates) > 0 &&
-			responseChunk.Candidates[0].FinishReason == "STOP" {
+		// Gemini reports cumulative usage in usageMetadata on streaming
+		// chunks; the final chunk carries the complete counts. Capture it
+		// whenever present so usage survives any finish reason, not just
+		// STOP.
+		if responseChunk.UsageMetadata.TotalTokenCount > 0 {
 			usage = response.Usage{
 				PromptTokens:     responseChunk.UsageMetadata.PromptTokenCount,
 				CompletionTokens: responseChunk.UsageMetadata.CandidatesTokenCount,
