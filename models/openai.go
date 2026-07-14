@@ -21,6 +21,14 @@ const (
 	GPT51CodexAlias     = "gpt-5.1-codex"
 	GPT51CodexMiniAlias = "gpt-5.1-codex-mini"
 	GPT52Alias          = "gpt-5.2"
+	GPT53CodexAlias     = "gpt-5.3-codex"
+	GPT54Alias          = "gpt-5.4"
+	GPT54MiniAlias      = "gpt-5.4-mini"
+	GPT54NanoAlias      = "gpt-5.4-nano"
+	GPT55Alias          = "gpt-5.5"
+	GPT56SolAlias       = "gpt-5.6-sol"
+	GPT56TerraAlias     = "gpt-5.6-terra"
+	GPT56LunaAlias      = "gpt-5.6-luna"
 	O3Alias             = "o3"
 	O4MiniAlias         = "o4-mini"
 )
@@ -614,6 +622,238 @@ func (g GPT52) GetProvider() string {
 }
 
 var _ Model = new(GPT52)
+
+type GPT53Codex struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT53Codex) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00000175
+}
+
+func (g GPT53Codex) GetInputCostPer1M() float64 {
+	return 1.75
+}
+
+func (g GPT53Codex) GetOutputCostPer1M() float64 {
+	return 14.0
+}
+
+func (g GPT53Codex) GetName() string {
+	return GPT53CodexAlias
+}
+
+func (g GPT53Codex) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT53Codex)
+var _ CostBreakdown = new(GPT53Codex)
+
+type GPT54 struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT54) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000025
+}
+
+func (g GPT54) GetInputCostPer1M() float64 {
+	return 2.5
+}
+
+func (g GPT54) GetOutputCostPer1M() float64 {
+	return 15.0
+}
+
+func (g GPT54) GetName() string {
+	return GPT54Alias
+}
+
+func (g GPT54) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT54)
+var _ CostBreakdown = new(GPT54)
+
+type GPT54Mini struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT54Mini) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00000075
+}
+
+func (g GPT54Mini) GetInputCostPer1M() float64 {
+	return 0.75
+}
+
+func (g GPT54Mini) GetOutputCostPer1M() float64 {
+	return 4.5
+}
+
+func (g GPT54Mini) GetName() string {
+	return GPT54MiniAlias
+}
+
+func (g GPT54Mini) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT54Mini)
+var _ CostBreakdown = new(GPT54Mini)
+
+type GPT54Nano struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT54Nano) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000002
+}
+
+func (g GPT54Nano) GetInputCostPer1M() float64 {
+	return 0.20
+}
+
+func (g GPT54Nano) GetOutputCostPer1M() float64 {
+	return 1.25
+}
+
+func (g GPT54Nano) GetName() string {
+	return GPT54NanoAlias
+}
+
+func (g GPT54Nano) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT54Nano)
+var _ CostBreakdown = new(GPT54Nano)
+
+type GPT55 struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT55) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000005
+}
+
+func (g GPT55) GetInputCostPer1M() float64 {
+	return 5.0
+}
+
+func (g GPT55) GetOutputCostPer1M() float64 {
+	return 30.0
+}
+
+func (g GPT55) GetName() string {
+	return GPT55Alias
+}
+
+func (g GPT55) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT55)
+var _ CostBreakdown = new(GPT55)
+
+type GPT56Sol struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT56Sol) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000005
+}
+
+func (g GPT56Sol) GetInputCostPer1M() float64 {
+	return 5.0
+}
+
+func (g GPT56Sol) GetOutputCostPer1M() float64 {
+	return 30.0
+}
+
+func (g GPT56Sol) GetName() string {
+	return GPT56SolAlias
+}
+
+func (g GPT56Sol) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT56Sol)
+var _ CostBreakdown = new(GPT56Sol)
+
+type GPT56Terra struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT56Terra) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000025
+}
+
+func (g GPT56Terra) GetInputCostPer1M() float64 {
+	return 2.5
+}
+
+func (g GPT56Terra) GetOutputCostPer1M() float64 {
+	return 15.0
+}
+
+func (g GPT56Terra) GetName() string {
+	return GPT56TerraAlias
+}
+
+func (g GPT56Terra) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT56Terra)
+var _ CostBreakdown = new(GPT56Terra)
+
+type GPT56Luna struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+func (g GPT56Luna) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000001
+}
+
+func (g GPT56Luna) GetInputCostPer1M() float64 {
+	return 1.0
+}
+
+func (g GPT56Luna) GetOutputCostPer1M() float64 {
+	return 6.0
+}
+
+func (g GPT56Luna) GetName() string {
+	return GPT56LunaAlias
+}
+
+func (g GPT56Luna) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT56Luna)
+var _ CostBreakdown = new(GPT56Luna)
 
 type O3 struct {
 	StructuredOutput map[string]any
