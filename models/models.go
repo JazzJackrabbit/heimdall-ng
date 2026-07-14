@@ -93,6 +93,8 @@ func GetAll() []string {
 		Grok3MiniFastAlias,
 		Grok4Alias,
 		Grok4FastAlias,
+		Grok43Alias,
+		Grok45Alias,
 
 		Gemini25FlashImageModel,
 	}
