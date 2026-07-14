@@ -247,6 +247,42 @@ func (a Anthropic) doRequest(
 			return response.Completion{}, 0, err
 		}
 		messages = append(messages, msgs...)
+	case models.AnthropicClaude47OpusAlias:
+		msgs, err := prepareClaude47Opus(
+			req.Model,
+			req.UserMessage,
+		)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+		messages = append(messages, msgs...)
+	case models.AnthropicClaude48OpusAlias:
+		msgs, err := prepareClaude48Opus(
+			req.Model,
+			req.UserMessage,
+		)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+		messages = append(messages, msgs...)
+	case models.AnthropicClaude5SonnetAlias:
+		msgs, err := prepareClaude5Sonnet(
+			req.Model,
+			req.UserMessage,
+		)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+		messages = append(messages, msgs...)
+	case models.AnthropicClaudeFable5Alias:
+		msgs, err := prepareClaudeFable5(
+			req.Model,
+			req.UserMessage,
+		)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+		messages = append(messages, msgs...)
 	}
 
 	maxTokens := 4096
@@ -288,6 +324,26 @@ func (a Anthropic) doRequest(
 		}
 		if m.ExtendedContext {
 			betas = append(betas, "context-1m-2025-08-07")
+		}
+	case models.Claude47Opus:
+		structuredOutput = m.StructuredOutput
+		if m.MaxOutputTokens > 0 {
+			maxTokens = m.MaxOutputTokens
+		}
+	case models.Claude48Opus:
+		structuredOutput = m.StructuredOutput
+		if m.MaxOutputTokens > 0 {
+			maxTokens = m.MaxOutputTokens
+		}
+	case models.Claude5Sonnet:
+		structuredOutput = m.StructuredOutput
+		if m.MaxOutputTokens > 0 {
+			maxTokens = m.MaxOutputTokens
+		}
+	case models.ClaudeFable5:
+		structuredOutput = m.StructuredOutput
+		if m.MaxOutputTokens > 0 {
+			maxTokens = m.MaxOutputTokens
 		}
 	}
 
@@ -951,6 +1007,138 @@ func prepareClaude46Sonnet(
 	if !ok {
 		return nil, errors.New(
 			"internal error; model type assertion to models.Claude46Sonnet failed",
+		)
+	}
+
+	if len(model.ImageFile) > 0 && len(model.PdfFiles) > 0 {
+		return nil, errors.New(
+			"only image file or pdf files can be provided, not both",
+		)
+	}
+
+	if len(model.ImageFile) > 0 {
+		return handleMedia(userMsg, model.ImageFile, nil), nil
+	}
+
+	if len(model.PdfFiles) > 0 {
+		return handleMedia(userMsg, nil, model.PdfFiles), nil
+	}
+
+	return []anthropicMsg{
+		{
+			Role:    "user",
+			Content: userMsg,
+		},
+	}, nil
+}
+
+func prepareClaude47Opus(
+	requestedModel models.Model,
+	userMsg string,
+) ([]anthropicMsg, error) {
+	model, ok := requestedModel.(models.Claude47Opus)
+	if !ok {
+		return nil, errors.New(
+			"internal error; model type assertion to models.Claude47Opus failed",
+		)
+	}
+
+	if len(model.ImageFile) > 0 && len(model.PdfFiles) > 0 {
+		return nil, errors.New(
+			"only image file or pdf files can be provided, not both",
+		)
+	}
+
+	if len(model.ImageFile) > 0 {
+		return handleMedia(userMsg, model.ImageFile, nil), nil
+	}
+
+	if len(model.PdfFiles) > 0 {
+		return handleMedia(userMsg, nil, model.PdfFiles), nil
+	}
+
+	return []anthropicMsg{
+		{
+			Role:    "user",
+			Content: userMsg,
+		},
+	}, nil
+}
+
+func prepareClaude48Opus(
+	requestedModel models.Model,
+	userMsg string,
+) ([]anthropicMsg, error) {
+	model, ok := requestedModel.(models.Claude48Opus)
+	if !ok {
+		return nil, errors.New(
+			"internal error; model type assertion to models.Claude48Opus failed",
+		)
+	}
+
+	if len(model.ImageFile) > 0 && len(model.PdfFiles) > 0 {
+		return nil, errors.New(
+			"only image file or pdf files can be provided, not both",
+		)
+	}
+
+	if len(model.ImageFile) > 0 {
+		return handleMedia(userMsg, model.ImageFile, nil), nil
+	}
+
+	if len(model.PdfFiles) > 0 {
+		return handleMedia(userMsg, nil, model.PdfFiles), nil
+	}
+
+	return []anthropicMsg{
+		{
+			Role:    "user",
+			Content: userMsg,
+		},
+	}, nil
+}
+
+func prepareClaude5Sonnet(
+	requestedModel models.Model,
+	userMsg string,
+) ([]anthropicMsg, error) {
+	model, ok := requestedModel.(models.Claude5Sonnet)
+	if !ok {
+		return nil, errors.New(
+			"internal error; model type assertion to models.Claude5Sonnet failed",
+		)
+	}
+
+	if len(model.ImageFile) > 0 && len(model.PdfFiles) > 0 {
+		return nil, errors.New(
+			"only image file or pdf files can be provided, not both",
+		)
+	}
+
+	if len(model.ImageFile) > 0 {
+		return handleMedia(userMsg, model.ImageFile, nil), nil
+	}
+
+	if len(model.PdfFiles) > 0 {
+		return handleMedia(userMsg, nil, model.PdfFiles), nil
+	}
+
+	return []anthropicMsg{
+		{
+			Role:    "user",
+			Content: userMsg,
+		},
+	}, nil
+}
+
+func prepareClaudeFable5(
+	requestedModel models.Model,
+	userMsg string,
+) ([]anthropicMsg, error) {
+	model, ok := requestedModel.(models.ClaudeFable5)
+	if !ok {
+		return nil, errors.New(
+			"internal error; model type assertion to models.ClaudeFable5 failed",
 		)
 	}
 

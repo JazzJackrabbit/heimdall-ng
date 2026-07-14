@@ -20,6 +20,10 @@ const (
 	AnthropicClaude45OpusAlias   = "claude-opus-4-5-20251101"
 	AnthropicClaude46OpusAlias   = "claude-opus-4-6"
 	AnthropicClaude46SonnetAlias = "claude-sonnet-4-6"
+	AnthropicClaude47OpusAlias   = "claude-opus-4-7"
+	AnthropicClaude48OpusAlias   = "claude-opus-4-8"
+	AnthropicClaude5SonnetAlias  = "claude-sonnet-5"
+	AnthropicClaudeFable5Alias   = "claude-fable-5"
 )
 
 type (
@@ -291,3 +295,137 @@ func (c Claude46Sonnet) GetProvider() string {
 
 var _ Model = new(Claude46Sonnet)
 var _ CostBreakdown = new(Claude46Sonnet)
+
+// Claude47Opus does not accept temperature or top_p; leave those request fields unset.
+type Claude47Opus struct {
+	ImageFile        map[AnthropicImageType]string
+	PdfFiles         []AnthropicPdf
+	StructuredOutput map[string]any
+	// MaxOutputTokens sets the maximum output tokens (up to 128K).
+	// Defaults to 4096 when zero.
+	MaxOutputTokens int
+}
+
+func (c Claude47Opus) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000005
+}
+
+func (c Claude47Opus) GetInputCostPer1M() float64 {
+	return 5.0
+}
+
+func (c Claude47Opus) GetOutputCostPer1M() float64 {
+	return 25.0
+}
+
+func (c Claude47Opus) GetName() string {
+	return AnthropicClaude47OpusAlias
+}
+
+func (c Claude47Opus) GetProvider() string {
+	return AnthropicProvider
+}
+
+var _ Model = new(Claude47Opus)
+var _ CostBreakdown = new(Claude47Opus)
+
+// Claude48Opus does not accept temperature or top_p; leave those request fields unset.
+type Claude48Opus struct {
+	ImageFile        map[AnthropicImageType]string
+	PdfFiles         []AnthropicPdf
+	StructuredOutput map[string]any
+	// MaxOutputTokens sets the maximum output tokens (up to 128K).
+	// Defaults to 4096 when zero.
+	MaxOutputTokens int
+}
+
+func (c Claude48Opus) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000005
+}
+
+func (c Claude48Opus) GetInputCostPer1M() float64 {
+	return 5.0
+}
+
+func (c Claude48Opus) GetOutputCostPer1M() float64 {
+	return 25.0
+}
+
+func (c Claude48Opus) GetName() string {
+	return AnthropicClaude48OpusAlias
+}
+
+func (c Claude48Opus) GetProvider() string {
+	return AnthropicProvider
+}
+
+var _ Model = new(Claude48Opus)
+var _ CostBreakdown = new(Claude48Opus)
+
+// Claude5Sonnet does not accept non-default temperature or top_p; leave those request fields unset.
+type Claude5Sonnet struct {
+	ImageFile        map[AnthropicImageType]string
+	PdfFiles         []AnthropicPdf
+	StructuredOutput map[string]any
+	// MaxOutputTokens sets the maximum output tokens (up to 128K).
+	// Defaults to 4096 when zero.
+	MaxOutputTokens int
+}
+
+func (c Claude5Sonnet) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000003
+}
+
+func (c Claude5Sonnet) GetInputCostPer1M() float64 {
+	return 3.0
+}
+
+func (c Claude5Sonnet) GetOutputCostPer1M() float64 {
+	return 15.0
+}
+
+func (c Claude5Sonnet) GetName() string {
+	return AnthropicClaude5SonnetAlias
+}
+
+func (c Claude5Sonnet) GetProvider() string {
+	return AnthropicProvider
+}
+
+var _ Model = new(Claude5Sonnet)
+var _ CostBreakdown = new(Claude5Sonnet)
+
+// ClaudeFable5 requires the organization to have 30-day data retention;
+// requests from zero-data-retention organizations are rejected by Anthropic.
+// It does not accept temperature or top_p; leave those request fields unset.
+type ClaudeFable5 struct {
+	ImageFile        map[AnthropicImageType]string
+	PdfFiles         []AnthropicPdf
+	StructuredOutput map[string]any
+	// MaxOutputTokens sets the maximum output tokens (up to 128K).
+	// Defaults to 4096 when zero.
+	MaxOutputTokens int
+}
+
+func (c ClaudeFable5) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00001
+}
+
+func (c ClaudeFable5) GetInputCostPer1M() float64 {
+	return 10.0
+}
+
+func (c ClaudeFable5) GetOutputCostPer1M() float64 {
+	return 50.0
+}
+
+func (c ClaudeFable5) GetName() string {
+	return AnthropicClaudeFable5Alias
+}
+
+func (c ClaudeFable5) GetProvider() string {
+	return AnthropicProvider
+}
+
+var _ Model = new(ClaudeFable5)
+var _ CostBreakdown = new(ClaudeFable5)

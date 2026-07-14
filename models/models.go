@@ -33,6 +33,10 @@ func GetAll() []string {
 		AnthropicClaude45OpusAlias,
 		AnthropicClaude46OpusAlias,
 		AnthropicClaude46SonnetAlias,
+		AnthropicClaude47OpusAlias,
+		AnthropicClaude48OpusAlias,
+		AnthropicClaude5SonnetAlias,
+		AnthropicClaudeFable5Alias,
 
 		// NOTE: Gemini 1.5 models have been retired by Google as of 2025
 		Gemini20FlashModel,
