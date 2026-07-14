@@ -688,7 +688,7 @@ func (g Google) doRequest(
 	var requestBody []byte
 
 	switch model.GetName() {
-	case models.Gemini20FlashModel:
+	case models.Gemini20FlashModel: //nolint:staticcheck // backward compatibility
 		preparedReq, err := prepareGemini20FlashRequest(
 			geminiReq,
 			model,
@@ -705,7 +705,7 @@ func (g Google) doRequest(
 		}
 
 		requestBody = body
-	case models.Gemini20FlashLiteModel:
+	case models.Gemini20FlashLiteModel: //nolint:staticcheck // backward compatibility
 		preparedReq, err := prepareGemini20FlashLiteRequest(
 			geminiReq,
 			model,
@@ -756,7 +756,7 @@ func (g Google) doRequest(
 		}
 
 		requestBody = body
-	case models.Gemini3ProModel:
+	case models.Gemini3ProModel: //nolint:staticcheck // backward compatibility
 		preparedReq, err := prepareGemini3ProPreviewRequest(
 			geminiReq,
 			model,
@@ -792,6 +792,57 @@ func (g Google) doRequest(
 		requestBody = body
 	case models.Gemini25FlashLiteModel:
 		preparedReq, err := prepareGemini25FlashLiteRequest(
+			geminiReq,
+			model,
+			systemMessage,
+			userMessage,
+		)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+
+		body, err := json.Marshal(preparedReq)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+
+		requestBody = body
+	case models.Gemini31ProModel:
+		preparedReq, err := prepareGemini31ProPreviewRequest(
+			geminiReq,
+			model,
+			systemMessage,
+			userMessage,
+		)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+
+		body, err := json.Marshal(preparedReq)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+
+		requestBody = body
+	case models.Gemini31FlashLiteModel:
+		preparedReq, err := prepareGemini31FlashLiteRequest(
+			geminiReq,
+			model,
+			systemMessage,
+			userMessage,
+		)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+
+		body, err := json.Marshal(preparedReq)
+		if err != nil {
+			return response.Completion{}, 0, err
+		}
+
+		requestBody = body
+	case models.Gemini35FlashModel:
+		preparedReq, err := prepareGemini35FlashRequest(
 			geminiReq,
 			model,
 			systemMessage,
@@ -946,7 +997,7 @@ func prepareGemini20FlashRequest(
 	systemInst string,
 	userMsg string,
 ) (geminiRequest, error) {
-	model, ok := requestedModel.(models.Gemini20Flash)
+	model, ok := requestedModel.(models.Gemini20Flash) //nolint:staticcheck // backward compatibility
 	if !ok {
 		return request, errors.New(
 			"internal error; model type assertion to models.Gemini20Flash failed",
@@ -1012,7 +1063,7 @@ func prepareGemini20FlashLiteRequest(
 	systemInst string,
 	userMsg string,
 ) (geminiRequest, error) {
-	model, ok := requestedModel.(models.Gemini20FlashLite)
+	model, ok := requestedModel.(models.Gemini20FlashLite) //nolint:staticcheck // backward compatibility
 	if !ok {
 		return request, errors.New(
 			"internal error; model type assertion to models.Gemini20FlashLite failed",
@@ -1547,6 +1598,219 @@ func prepareGemini3FlashPreviewRequest(
 	if !ok {
 		return request, errors.New(
 			"internal error; model type assertion to models.Gemini3FlashPreview failed",
+		)
+	}
+
+	request.SystemInstruction.Parts = part{
+		Text: systemInst,
+	}
+
+	lastIndex := 0
+	if len(request.Contents) > 1 {
+		lastIndex = len(request.Contents) - 1
+	}
+
+	if len(request.Contents) > 0 {
+		request.Contents[lastIndex].Parts = append(
+			request.Contents[lastIndex].Parts,
+			part{Text: userMsg},
+		)
+		request.Contents[lastIndex].Role = "user"
+	}
+
+	if len(model.PdfFiles) > 0 && len(model.ImageFile) > 0 {
+		return request, errors.New(
+			"only pdf file or image file can be provided, not both",
+		)
+	}
+
+	if len(model.ImageFile) > 0 {
+		request = handleVisionData(request, model.ImageFile)
+	}
+
+	if len(model.PdfFiles) > 0 {
+		request = handlePdfData(request, model.PdfFiles, lastIndex)
+	}
+
+	if len(model.Files) > 0 {
+		request = handleGenericFiles(request, model.Files, lastIndex)
+	}
+
+	if len(model.StructuredOutput) > 0 {
+		if request.Config == nil {
+			request.Config = map[string]any{}
+		}
+		request.Config["response_mime_type"] = "application/json"
+		request.Config["response_schema"] = model.StructuredOutput
+	}
+
+	if len(model.Tools) > 0 {
+		request.Tools = model.Tools
+	}
+
+	if model.ThinkingLevel != "" {
+		request = handleThinkingLevel(request, model.ThinkingLevel)
+	}
+
+	if model.MediaResolution != "" {
+		request = handleMediaResolution(request, model.MediaResolution)
+	}
+
+	return request, nil
+}
+
+func prepareGemini31ProPreviewRequest(
+	request geminiRequest,
+	requestedModel models.Model,
+	systemInst string,
+	userMsg string,
+) (geminiRequest, error) {
+	model, ok := requestedModel.(models.Gemini31ProPreview)
+	if !ok {
+		return request, errors.New(
+			"internal error; model type assertion to models.Gemini31ProPreview failed",
+		)
+	}
+
+	request.SystemInstruction.Parts = part{
+		Text: systemInst,
+	}
+
+	lastIndex := 0
+	if len(request.Contents) > 1 {
+		lastIndex = len(request.Contents) - 1
+	}
+
+	if len(request.Contents) > 0 {
+		request.Contents[lastIndex].Parts = append(
+			request.Contents[lastIndex].Parts,
+			part{Text: userMsg},
+		)
+		request.Contents[lastIndex].Role = "user"
+	}
+
+	if len(model.PdfFiles) > 0 && len(model.ImageFile) > 0 {
+		return request, errors.New(
+			"only pdf file or image file can be provided, not both",
+		)
+	}
+
+	if len(model.ImageFile) > 0 {
+		request = handleVisionData(request, model.ImageFile)
+	}
+
+	if len(model.PdfFiles) > 0 {
+		request = handlePdfData(request, model.PdfFiles, lastIndex)
+	}
+
+	if len(model.Files) > 0 {
+		request = handleGenericFiles(request, model.Files, lastIndex)
+	}
+
+	if len(model.StructuredOutput) > 0 {
+		if request.Config == nil {
+			request.Config = map[string]any{}
+		}
+		request.Config["response_mime_type"] = "application/json"
+		request.Config["response_schema"] = model.StructuredOutput
+	}
+
+	if len(model.Tools) > 0 {
+		request.Tools = model.Tools
+	}
+
+	if model.ThinkingLevel != "" {
+		request = handleThinkingLevel(request, model.ThinkingLevel)
+	}
+
+	if model.MediaResolution != "" {
+		request = handleMediaResolution(request, model.MediaResolution)
+	}
+
+	return request, nil
+}
+
+func prepareGemini31FlashLiteRequest(
+	request geminiRequest,
+	requestedModel models.Model,
+	systemInst string,
+	userMsg string,
+) (geminiRequest, error) {
+	model, ok := requestedModel.(models.Gemini31FlashLite)
+	if !ok {
+		return request, errors.New(
+			"internal error; model type assertion to models.Gemini31FlashLite failed",
+		)
+	}
+
+	request.SystemInstruction.Parts = part{
+		Text: systemInst,
+	}
+
+	lastIndex := 0
+	if len(request.Contents) > 1 {
+		lastIndex = len(request.Contents) - 1
+	}
+
+	if len(request.Contents) > 0 {
+		request.Contents[lastIndex].Parts = append(
+			request.Contents[lastIndex].Parts,
+			part{Text: userMsg},
+		)
+		request.Contents[lastIndex].Role = "user"
+	}
+
+	if len(model.PdfFiles) > 0 && len(model.ImageFile) > 0 {
+		return request, errors.New(
+			"only pdf file or image file can be provided, not both",
+		)
+	}
+
+	if len(model.ImageFile) > 0 {
+		request = handleVisionData(request, model.ImageFile)
+	}
+
+	if len(model.PdfFiles) > 0 {
+		request = handlePdfData(request, model.PdfFiles, lastIndex)
+	}
+
+	if len(model.Files) > 0 {
+		request = handleGenericFiles(request, model.Files, lastIndex)
+	}
+
+	if len(model.StructuredOutput) > 0 {
+		if request.Config == nil {
+			request.Config = map[string]any{}
+		}
+		request.Config["response_mime_type"] = "application/json"
+		request.Config["response_schema"] = model.StructuredOutput
+	}
+
+	if len(model.Tools) > 0 {
+		request.Tools = model.Tools
+	}
+
+	if model.ThinkingLevel != "" {
+		request = handleThinkingLevel(request, model.ThinkingLevel)
+	}
+
+	if model.MediaResolution != "" {
+		request = handleMediaResolution(request, model.MediaResolution)
+	}
+
+	return request, nil
+}
+
+func prepareGemini35FlashRequest(
+	request geminiRequest,
+	requestedModel models.Model,
+	systemInst string,
+	userMsg string,
+) (geminiRequest, error) {
+	model, ok := requestedModel.(models.Gemini35Flash)
+	if !ok {
+		return request, errors.New(
+			"internal error; model type assertion to models.Gemini35Flash failed",
 		)
 	}
 

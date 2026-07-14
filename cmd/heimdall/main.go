@@ -36,7 +36,7 @@ func main() {
 	res, err := g.CompleteResponse(
 		ctx,
 		request.Completion{
-			Model: models.Gemini20Flash{
+			Model: models.Gemini25FlashPreview{
 				// ImageFile: map[models.AnthropicImageType]string{
 				// 	models.AnthropicImageJpeg: base64.StdEncoding.EncodeToString(
 				// 		f,
@@ -59,7 +59,7 @@ func main() {
 	// router := heimdall.New(timeout, []providers.LLMProvider{g, oa})
 	//
 	// req := request.Completion{
-	// 	Model: models.Gemini20Flash{},
+	// 	Model: models.Gemini25FlashPreview{},
 	// 	Messages: []request.Message{
 	// 		{
 	// 			Role:    "system",

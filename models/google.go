@@ -4,15 +4,25 @@ const GoogleProvider = "google"
 
 const (
 	// NOTE: Gemini 1.5 models (gemini-1.5-flash-002, gemini-1.5-pro-002) have been retired by Google as of 2025
-	Gemini20FlashModel      = "gemini-2.0-flash-001"
+
+	// Deprecated: gemini-2.0-flash-001 has been shut down by Google. Requests to this model will fail.
+	// Use Gemini25FlashModel (gemini-2.5-flash) as a replacement.
+	Gemini20FlashModel = "gemini-2.0-flash-001"
+	// Deprecated: gemini-2.0-flash-lite-001 has been shut down by Google. Requests to this model will fail.
+	// Use Gemini25FlashLiteModel (gemini-2.5-flash-lite) as a replacement.
 	Gemini20FlashLiteModel  = "gemini-2.0-flash-lite-001"
 	Gemini25FlashModel      = "gemini-2.5-flash"
 	Gemini25FlashLiteModel  = "gemini-2.5-flash-lite"
 	Gemini25ProModel        = "gemini-2.5-pro"
 	Gemini25FlashImageModel = "gemini-2.5-flash-image"
-	Gemini3ProModel         = "gemini-3-pro-preview"
-	Gemini3ProImageModel    = "gemini-3-pro-image-preview"
-	Gemini3FlashModel       = "gemini-3-flash-preview"
+	// Deprecated: gemini-3-pro-preview has been shut down by Google. Requests to this model will fail.
+	// Use Gemini31ProModel (gemini-3.1-pro-preview) as a replacement.
+	Gemini3ProModel        = "gemini-3-pro-preview"
+	Gemini3ProImageModel   = "gemini-3-pro-image-preview"
+	Gemini3FlashModel      = "gemini-3-flash-preview"
+	Gemini31ProModel       = "gemini-3.1-pro-preview"
+	Gemini31FlashLiteModel = "gemini-3.1-flash-lite"
+	Gemini35FlashModel     = "gemini-3.5-flash"
 )
 
 type ThinkBudget string
@@ -82,6 +92,8 @@ type (
 
 // NOTE: Gemini15Pro and Gemini15Flash types have been removed as these models were retired by Google in 2025
 
+// Deprecated: gemini-2.0-flash-001 has been shut down by Google. Requests to this model will fail.
+// Use Gemini25FlashPreview (gemini-2.5-flash) as a replacement.
 type Gemini20Flash struct {
 	Tools GoogleTool
 	// StructuredOutput represents a subset of the OpenAPI 3.0 Schema Object. Refer to gemini documentation for complete and up-to-date information. An example structure could be:
@@ -118,6 +130,8 @@ func (g Gemini20Flash) GetProvider() string {
 
 var _ Model = new(Gemini20Flash)
 
+// Deprecated: gemini-2.0-flash-lite-001 has been shut down by Google. Requests to this model will fail.
+// Use Gemini25FlashLite (gemini-2.5-flash-lite) as a replacement.
 type Gemini20FlashLite struct {
 	Tools GoogleTool
 	// StructuredOutput represents a subset of the OpenAPI 3.0 Schema Object. Refer to gemini documentation for complete and up-to-date information. An example structure could be:
@@ -324,8 +338,8 @@ func (g Gemini25FlashImage) GetProvider() string {
 var _ Model = new(Gemini25FlashImage)
 var _ CostBreakdown = new(Gemini25FlashImage)
 
-// Deprecated: gemini-3-pro-preview shuts down on March 9, 2026.
-// Use gemini-3.1-pro-preview as a replacement.
+// Deprecated: gemini-3-pro-preview was shut down on March 9, 2026. Requests to this model will fail.
+// Use Gemini31ProPreview (gemini-3.1-pro-preview) as a replacement.
 type Gemini3ProPreview struct {
 	Tools            GoogleTool
 	StructuredOutput map[string]any
@@ -428,3 +442,102 @@ func (g Gemini3FlashPreview) GetProvider() string {
 
 var _ Model = new(Gemini3FlashPreview)
 var _ CostBreakdown = new(Gemini3FlashPreview)
+
+type Gemini31ProPreview struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (g Gemini31ProPreview) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000002
+}
+
+func (g Gemini31ProPreview) GetInputCostPer1M() float64 {
+	return 2.0
+}
+
+func (g Gemini31ProPreview) GetOutputCostPer1M() float64 {
+	return 12.0
+}
+
+func (g Gemini31ProPreview) GetName() string {
+	return Gemini31ProModel
+}
+
+func (g Gemini31ProPreview) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini31ProPreview)
+var _ CostBreakdown = new(Gemini31ProPreview)
+
+type Gemini31FlashLite struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (g Gemini31FlashLite) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00000025
+}
+
+func (g Gemini31FlashLite) GetInputCostPer1M() float64 {
+	return 0.25
+}
+
+func (g Gemini31FlashLite) GetOutputCostPer1M() float64 {
+	return 1.50
+}
+
+func (g Gemini31FlashLite) GetName() string {
+	return Gemini31FlashLiteModel
+}
+
+func (g Gemini31FlashLite) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini31FlashLite)
+var _ CostBreakdown = new(Gemini31FlashLite)
+
+type Gemini35Flash struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (g Gemini35Flash) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000015
+}
+
+func (g Gemini35Flash) GetInputCostPer1M() float64 {
+	return 1.50
+}
+
+func (g Gemini35Flash) GetOutputCostPer1M() float64 {
+	return 9.0
+}
+
+func (g Gemini35Flash) GetName() string {
+	return Gemini35FlashModel
+}
+
+func (g Gemini35Flash) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini35Flash)
+var _ CostBreakdown = new(Gemini35Flash)

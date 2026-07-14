@@ -47,9 +47,9 @@ func TestVertexAIModelsWithCompletion(t *testing.T) {
 	}{
 		// NOTE: Gemini 1.5 test cases removed as models were retired by Google in 2025
 		{
-			name: "should complete request with VertexGemini20Flash",
+			name: "should complete request with VertexGemini25Flash",
 			req: request.Completion{
-				Model:         models.VertexGemini20Flash{},
+				Model:         models.VertexGemini25Flash{},
 				SystemMessage: systemInst,
 				UserMessage:   userMsg,
 				Temperature:   1,
@@ -59,9 +59,9 @@ func TestVertexAIModelsWithCompletion(t *testing.T) {
 			},
 		},
 		{
-			name: "should complete request with VertexGemini20FlashLite",
+			name: "should complete request with VertexGemini25FlashLite",
 			req: request.Completion{
-				Model:         models.VertexGemini20FlashLite{},
+				Model:         models.VertexGemini25FlashLite{},
 				SystemMessage: systemInst,
 				UserMessage:   userMsg,
 				Temperature:   1,
@@ -125,9 +125,9 @@ func TestVertexAIModelsWithStreaming(t *testing.T) {
 	}{
 		// NOTE: Gemini 1.5 test cases removed as models were retired by Google in 2025
 		{
-			name: "should stream request with VertexGemini20Flash",
+			name: "should stream request with VertexGemini25Flash",
 			req: request.Completion{
-				Model:         models.VertexGemini20Flash{},
+				Model:         models.VertexGemini25Flash{},
 				SystemMessage: systemInst,
 				UserMessage:   userMsg,
 				Temperature:   1,
@@ -137,9 +137,9 @@ func TestVertexAIModelsWithStreaming(t *testing.T) {
 			},
 		},
 		{
-			name: "should stream request with VertexGemini20FlashLite",
+			name: "should stream request with VertexGemini25FlashLite",
 			req: request.Completion{
-				Model:         models.VertexGemini20FlashLite{},
+				Model:         models.VertexGemini25FlashLite{},
 				SystemMessage: systemInst,
 				UserMessage:   userMsg,
 				Temperature:   1,

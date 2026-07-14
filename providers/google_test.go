@@ -28,7 +28,7 @@ func TestGoogleModelsWithCompletion(t *testing.T) {
 	google := providers.NewGoogle([]string{apiKey})
 
 	req := request.Completion{
-		Model:         models.Gemini20FlashLite{},
+		Model:         models.Gemini25FlashLite{},
 		SystemMessage: "you are a helpful assistant.",
 		UserMessage:   "Say hello in one sentence.",
 		Temperature:   1,
@@ -62,7 +62,7 @@ func TestGoogleModelsWithStreaming(t *testing.T) {
 	google := providers.NewGoogle([]string{apiKey})
 
 	req := request.Completion{
-		Model:         models.Gemini20FlashLite{},
+		Model:         models.Gemini25FlashLite{},
 		SystemMessage: "you are a helpful assistant.",
 		UserMessage:   "Say hello in one sentence.",
 		Temperature:   1,

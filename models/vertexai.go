@@ -6,6 +6,8 @@ const VertexProvider = "vertexai"
 
 // Gemini 2.0 Models
 
+// Deprecated: gemini-2.0-flash-001 has been shut down by Google. Requests to this model will fail.
+// Use VertexGemini25Flash (gemini-2.5-flash) as a replacement.
 type VertexGemini20Flash struct {
 	Tools            GoogleTool
 	StructuredOutput map[string]any
@@ -38,6 +40,8 @@ func (v VertexGemini20Flash) GetProvider() string {
 var _ Model = new(VertexGemini20Flash)
 var _ CostBreakdown = new(VertexGemini20Flash)
 
+// Deprecated: gemini-2.0-flash-lite-001 has been shut down by Google. Requests to this model will fail.
+// Use VertexGemini25FlashLite (gemini-2.5-flash-lite) as a replacement.
 type VertexGemini20FlashLite struct {
 	Tools            GoogleTool
 	StructuredOutput map[string]any
@@ -206,6 +210,8 @@ var _ CostBreakdown = new(VertexGemini25FlashImage)
 
 // Gemini 3 Models (Preview)
 
+// Deprecated: gemini-3-pro-preview was shut down on March 9, 2026. Requests to this model will fail.
+// Use VertexGemini31ProPreview (gemini-3.1-pro-preview) as a replacement.
 type VertexGemini3ProPreview struct {
 	Tools            GoogleTool
 	StructuredOutput map[string]any
@@ -309,3 +315,102 @@ func (v VertexGemini3ProImagePreview) GetProvider() string {
 
 var _ Model = new(VertexGemini3ProImagePreview)
 var _ CostBreakdown = new(VertexGemini3ProImagePreview)
+
+type VertexGemini31ProPreview struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (v VertexGemini31ProPreview) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000002
+}
+
+func (v VertexGemini31ProPreview) GetInputCostPer1M() float64 {
+	return 2.0
+}
+
+func (v VertexGemini31ProPreview) GetOutputCostPer1M() float64 {
+	return 12.0
+}
+
+func (v VertexGemini31ProPreview) GetName() string {
+	return "gemini-3.1-pro-preview"
+}
+
+func (v VertexGemini31ProPreview) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini31ProPreview)
+var _ CostBreakdown = new(VertexGemini31ProPreview)
+
+type VertexGemini31FlashLite struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (v VertexGemini31FlashLite) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00000025
+}
+
+func (v VertexGemini31FlashLite) GetInputCostPer1M() float64 {
+	return 0.25
+}
+
+func (v VertexGemini31FlashLite) GetOutputCostPer1M() float64 {
+	return 1.50
+}
+
+func (v VertexGemini31FlashLite) GetName() string {
+	return "gemini-3.1-flash-lite"
+}
+
+func (v VertexGemini31FlashLite) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini31FlashLite)
+var _ CostBreakdown = new(VertexGemini31FlashLite)
+
+type VertexGemini35Flash struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (v VertexGemini35Flash) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000015
+}
+
+func (v VertexGemini35Flash) GetInputCostPer1M() float64 {
+	return 1.50
+}
+
+func (v VertexGemini35Flash) GetOutputCostPer1M() float64 {
+	return 9.0
+}
+
+func (v VertexGemini35Flash) GetName() string {
+	return "gemini-3.5-flash"
+}
+
+func (v VertexGemini35Flash) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini35Flash)
+var _ CostBreakdown = new(VertexGemini35Flash)

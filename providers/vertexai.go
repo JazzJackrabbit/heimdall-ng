@@ -308,14 +308,14 @@ func extractVertexModelConfig(model models.Model) vertexModelConfig {
 	config := vertexModelConfig{}
 
 	switch m := model.(type) {
-	case models.VertexGemini20Flash:
+	case models.VertexGemini20Flash: //nolint:staticcheck // backward compatibility
 		config.Tools = m.Tools
 		config.StructuredOutput = m.StructuredOutput
 		config.PdfFiles = m.PdfFiles
 		config.ImageFile = m.ImageFile
 		config.Files = m.Files
 		config.Thinking = m.Thinking
-	case models.VertexGemini20FlashLite:
+	case models.VertexGemini20FlashLite: //nolint:staticcheck // backward compatibility
 		config.Tools = m.Tools
 		config.StructuredOutput = m.StructuredOutput
 		config.PdfFiles = m.PdfFiles
@@ -343,7 +343,7 @@ func extractVertexModelConfig(model models.Model) vertexModelConfig {
 		config.ImageFile = m.ImageFile
 		config.Files = m.Files
 		config.Thinking = m.Thinking
-	case models.VertexGemini3ProPreview:
+	case models.VertexGemini3ProPreview: //nolint:staticcheck // backward compatibility
 		config.Tools = m.Tools
 		config.StructuredOutput = m.StructuredOutput
 		config.PdfFiles = m.PdfFiles
@@ -352,6 +352,30 @@ func extractVertexModelConfig(model models.Model) vertexModelConfig {
 		config.ThinkingLevel = m.ThinkingLevel
 		config.MediaResolution = m.MediaResolution
 	case models.VertexGemini3FlashPreview:
+		config.Tools = m.Tools
+		config.StructuredOutput = m.StructuredOutput
+		config.PdfFiles = m.PdfFiles
+		config.ImageFile = m.ImageFile
+		config.Files = m.Files
+		config.ThinkingLevel = m.ThinkingLevel
+		config.MediaResolution = m.MediaResolution
+	case models.VertexGemini31ProPreview:
+		config.Tools = m.Tools
+		config.StructuredOutput = m.StructuredOutput
+		config.PdfFiles = m.PdfFiles
+		config.ImageFile = m.ImageFile
+		config.Files = m.Files
+		config.ThinkingLevel = m.ThinkingLevel
+		config.MediaResolution = m.MediaResolution
+	case models.VertexGemini31FlashLite:
+		config.Tools = m.Tools
+		config.StructuredOutput = m.StructuredOutput
+		config.PdfFiles = m.PdfFiles
+		config.ImageFile = m.ImageFile
+		config.Files = m.Files
+		config.ThinkingLevel = m.ThinkingLevel
+		config.MediaResolution = m.MediaResolution
+	case models.VertexGemini35Flash:
 		config.Tools = m.Tools
 		config.StructuredOutput = m.StructuredOutput
 		config.PdfFiles = m.PdfFiles
