@@ -643,6 +643,14 @@ if err != nil {
 Heimdall supports various models from different providers:
 
 ### OpenAI Models
+- GPT-5.6 Sol (gpt-5.6-sol)
+- GPT-5.6 Terra (gpt-5.6-terra)
+- GPT-5.6 Luna (gpt-5.6-luna)
+- GPT-5.5 (gpt-5.5)
+- GPT-5.4 (gpt-5.4)
+- GPT-5.4 Mini (gpt-5.4-mini)
+- GPT-5.4 Nano (gpt-5.4-nano)
+- GPT-5.3 Codex (gpt-5.3-codex)
 - GPT-4 (gpt-4-0613)
 - GPT-4 Turbo (gpt-4-turbo)
 - GPT-4o (gpt-4o-2024-11-20)
@@ -666,6 +674,10 @@ Heimdall supports various models from different providers:
 - GPT Image (gpt-image-1)
 
 ### Anthropic Models
+- Claude Fable 5 (claude-fable-5) — requires 30-day data retention on the organization
+- Claude Sonnet 5 (claude-sonnet-5)
+- Claude 4.8 Opus (claude-opus-4-8)
+- Claude 4.7 Opus (claude-opus-4-7)
 - Claude 4.6 Opus (claude-opus-4-6)
 - Claude 4.6 Sonnet (claude-sonnet-4-6)
 - Claude 4.5 Opus (claude-opus-4-5-20251101)
@@ -675,6 +687,9 @@ Heimdall supports various models from different providers:
 - Claude 4 Sonnet (claude-sonnet-4-20250514)
 
 ### Google/Gemini Models
+- Gemini 3.5 Flash (gemini-3.5-flash)
+- Gemini 3.1 Pro Preview (gemini-3.1-pro-preview)
+- Gemini 3.1 Flash Lite (gemini-3.1-flash-lite)
 - Gemini 3 Flash Preview (gemini-3-flash-preview)
 - Gemini 3 Pro Image Preview (gemini-3-pro-image-preview)
 - Gemini 2.5 Pro (gemini-2.5-pro)
@@ -684,6 +699,9 @@ Heimdall supports various models from different providers:
 
 ### VertexAI Models
 Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` model types):
+- Gemini 3.5 Flash (gemini-3.5-flash)
+- Gemini 3.1 Pro Preview (gemini-3.1-pro-preview)
+- Gemini 3.1 Flash Lite (gemini-3.1-flash-lite)
 - Gemini 3 Flash Preview (gemini-3-flash-preview)
 - Gemini 3 Pro Image Preview (gemini-3-pro-image-preview)
 - Gemini 2.5 Pro (gemini-2.5-pro)
@@ -692,6 +710,8 @@ Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` mod
 - Gemini 2.5 Flash Image (gemini-2.5-flash-image)
 
 ### Grok Models
+- Grok 4.5 (grok-4.5)
+- Grok 4.3 (grok-4.3)
 - Grok 4 (grok-4)
 - Grok 4 Fast (grok-4-fast)
 - Grok 3 (grok-3)
