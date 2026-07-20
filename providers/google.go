@@ -1932,7 +1932,8 @@ func (g Google) doGemini3ProImageRequest(
 		}
 	}
 
-	parts = append(parts, part{Text: req.UserMessage})
+	// The prompt, system message folded in (see imagePromptText).
+	parts = append(parts, part{Text: imagePromptText(req)})
 
 	requestPayload := map[string]any{
 		"contents": []map[string]any{
@@ -1941,14 +1942,6 @@ func (g Google) doGemini3ProImageRequest(
 				"role":  "user",
 			},
 		},
-	}
-
-	if req.SystemMessage != "" {
-		requestPayload["systemInstruction"] = map[string]any{
-			"parts": []any{
-				part{Text: req.SystemMessage},
-			},
-		}
 	}
 
 	generationConfig := map[string]any{
@@ -2060,6 +2053,21 @@ type gemini25FlashImageResponse struct {
 	} `json:"usageMetadata"`
 }
 
+// imagePromptText folds the system message into the user text part. Gemini
+// image models do not apply systemInstruction — Google's image-generation
+// examples put every instruction in the prompt itself — so a brief sent as a
+// system message would be silently dropped.
+func imagePromptText(req request.Completion) string {
+	switch {
+	case req.SystemMessage == "":
+		return req.UserMessage
+	case req.UserMessage == "":
+		return req.SystemMessage
+	default:
+		return req.SystemMessage + "\n\n" + req.UserMessage
+	}
+}
+
 // doGemini25FlashImageRequest handles image generation via Gemini 2.5 Flash Image model
 func (g Google) doGemini25FlashImageRequest(
 	ctx context.Context,
@@ -2129,8 +2137,8 @@ func (g Google) doGemini25FlashImageRequest(
 		}
 	}
 
-	// Add user message
-	parts = append(parts, part{Text: req.UserMessage})
+	// Add the prompt, system message folded in (see imagePromptText).
+	parts = append(parts, part{Text: imagePromptText(req)})
 
 	requestPayload := map[string]any{
 		"contents": []map[string]any{
@@ -2139,14 +2147,6 @@ func (g Google) doGemini25FlashImageRequest(
 				"role":  "user",
 			},
 		},
-	}
-
-	if req.SystemMessage != "" {
-		requestPayload["systemInstruction"] = map[string]any{
-			"parts": []any{
-				part{Text: req.SystemMessage},
-			},
-		}
 	}
 
 	// Add generation config
