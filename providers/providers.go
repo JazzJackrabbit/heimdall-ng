@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/JazzJackrabbit/heimdall/request"
-	"github.com/JazzJackrabbit/heimdall/response"
+	"github.com/JazzJackrabbit/heimdall-ng/request"
+	"github.com/JazzJackrabbit/heimdall-ng/response"
 )
 
 type LLMProvider interface {

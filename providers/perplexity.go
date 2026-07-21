@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/JazzJackrabbit/heimdall/models"
-	"github.com/JazzJackrabbit/heimdall/request"
-	"github.com/JazzJackrabbit/heimdall/response"
+	"github.com/JazzJackrabbit/heimdall-ng/models"
+	"github.com/JazzJackrabbit/heimdall-ng/request"
+	"github.com/JazzJackrabbit/heimdall-ng/response"
 )
 
 var perplexityBaseUrl = "https://api.perplexity.ai/chat/completions"

@@ -5,7 +5,7 @@ package providers
 import (
 	"testing"
 
-	"github.com/JazzJackrabbit/heimdall/models"
+	"github.com/JazzJackrabbit/heimdall-ng/models"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,7 +3,7 @@ package response
 import (
 	"time"
 
-	"github.com/JazzJackrabbit/heimdall/models"
+	"github.com/JazzJackrabbit/heimdall-ng/models"
 )
 
 type Event struct {

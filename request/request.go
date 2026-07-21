@@ -1,6 +1,6 @@
 package request
 
-import "github.com/JazzJackrabbit/heimdall/models"
+import "github.com/JazzJackrabbit/heimdall-ng/models"
 
 type MimeType string
 

@@ -14,9 +14,9 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/genai"
 
-	"github.com/JazzJackrabbit/heimdall/models"
-	"github.com/JazzJackrabbit/heimdall/request"
-	"github.com/JazzJackrabbit/heimdall/response"
+	"github.com/JazzJackrabbit/heimdall-ng/models"
+	"github.com/JazzJackrabbit/heimdall-ng/request"
+	"github.com/JazzJackrabbit/heimdall-ng/response"
 )
 
 // convertSchemaToGenai converts a map[string]any schema to *genai.Schema

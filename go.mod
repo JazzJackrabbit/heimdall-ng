@@ -1,4 +1,4 @@
-module github.com/JazzJackrabbit/heimdall
+module github.com/JazzJackrabbit/heimdall-ng
 
 go 1.26.0
 

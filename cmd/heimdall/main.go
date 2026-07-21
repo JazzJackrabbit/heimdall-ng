@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/JazzJackrabbit/heimdall/models"
-	"github.com/JazzJackrabbit/heimdall/providers"
-	"github.com/JazzJackrabbit/heimdall/request"
+	"github.com/JazzJackrabbit/heimdall-ng/models"
+	"github.com/JazzJackrabbit/heimdall-ng/providers"
+	"github.com/JazzJackrabbit/heimdall-ng/request"
 )
 
 type Schema struct {

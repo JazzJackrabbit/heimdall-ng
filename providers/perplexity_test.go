@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/JazzJackrabbit/heimdall/models"
-	"github.com/JazzJackrabbit/heimdall/providers"
-	"github.com/JazzJackrabbit/heimdall/request"
+	"github.com/JazzJackrabbit/heimdall-ng/models"
+	"github.com/JazzJackrabbit/heimdall-ng/providers"
+	"github.com/JazzJackrabbit/heimdall-ng/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
