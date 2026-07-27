@@ -675,6 +675,7 @@ Heimdall supports various models from different providers:
 
 ### Anthropic Models
 - Claude Fable 5 (claude-fable-5) — requires 30-day data retention on the organization
+- Claude Opus 5 (claude-opus-5)
 - Claude Sonnet 5 (claude-sonnet-5)
 - Claude 4.8 Opus (claude-opus-4-8)
 - Claude 4.7 Opus (claude-opus-4-7)
@@ -687,7 +688,9 @@ Heimdall supports various models from different providers:
 - Claude 4 Sonnet (claude-sonnet-4-20250514)
 
 ### Google/Gemini Models
+- Gemini 3.6 Flash (gemini-3.6-flash)
 - Gemini 3.5 Flash (gemini-3.5-flash)
+- Gemini 3.5 Flash Lite (gemini-3.5-flash-lite)
 - Gemini 3.1 Pro Preview (gemini-3.1-pro-preview)
 - Gemini 3.1 Flash Lite (gemini-3.1-flash-lite)
 - Gemini 3 Flash Preview (gemini-3-flash-preview)
@@ -699,7 +702,9 @@ Heimdall supports various models from different providers:
 
 ### VertexAI Models
 Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` model types):
+- Gemini 3.6 Flash (gemini-3.6-flash)
 - Gemini 3.5 Flash (gemini-3.5-flash)
+- Gemini 3.5 Flash Lite (gemini-3.5-flash-lite)
 - Gemini 3.1 Pro Preview (gemini-3.1-pro-preview)
 - Gemini 3.1 Flash Lite (gemini-3.1-flash-lite)
 - Gemini 3 Flash Preview (gemini-3-flash-preview)
