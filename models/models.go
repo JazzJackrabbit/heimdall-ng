@@ -35,6 +35,7 @@ func GetAll() []string {
 		AnthropicClaude46SonnetAlias,
 		AnthropicClaude47OpusAlias,
 		AnthropicClaude48OpusAlias,
+		AnthropicClaude5OpusAlias,
 		AnthropicClaude5SonnetAlias,
 		AnthropicClaudeFable5Alias,
 
@@ -50,6 +51,8 @@ func GetAll() []string {
 		Gemini31ProModel,
 		Gemini31FlashLiteModel,
 		Gemini35FlashModel,
+		Gemini35FlashLiteModel,
+		Gemini36FlashModel,
 
 		O3MiniAlias,
 		GPT4OAlias,

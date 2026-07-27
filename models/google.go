@@ -23,6 +23,8 @@ const (
 	Gemini31ProModel       = "gemini-3.1-pro-preview"
 	Gemini31FlashLiteModel = "gemini-3.1-flash-lite"
 	Gemini35FlashModel     = "gemini-3.5-flash"
+	Gemini35FlashLiteModel = "gemini-3.5-flash-lite"
+	Gemini36FlashModel     = "gemini-3.6-flash"
 )
 
 type ThinkBudget string
@@ -541,3 +543,69 @@ func (g Gemini35Flash) GetProvider() string {
 
 var _ Model = new(Gemini35Flash)
 var _ CostBreakdown = new(Gemini35Flash)
+
+type Gemini35FlashLite struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (g Gemini35FlashLite) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000003
+}
+
+func (g Gemini35FlashLite) GetInputCostPer1M() float64 {
+	return 0.30
+}
+
+func (g Gemini35FlashLite) GetOutputCostPer1M() float64 {
+	return 2.50
+}
+
+func (g Gemini35FlashLite) GetName() string {
+	return Gemini35FlashLiteModel
+}
+
+func (g Gemini35FlashLite) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini35FlashLite)
+var _ CostBreakdown = new(Gemini35FlashLite)
+
+type Gemini36Flash struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (g Gemini36Flash) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000015
+}
+
+func (g Gemini36Flash) GetInputCostPer1M() float64 {
+	return 1.50
+}
+
+func (g Gemini36Flash) GetOutputCostPer1M() float64 {
+	return 7.50
+}
+
+func (g Gemini36Flash) GetName() string {
+	return Gemini36FlashModel
+}
+
+func (g Gemini36Flash) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini36Flash)
+var _ CostBreakdown = new(Gemini36Flash)

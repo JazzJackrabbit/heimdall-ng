@@ -22,6 +22,7 @@ const (
 	AnthropicClaude46SonnetAlias = "claude-sonnet-4-6"
 	AnthropicClaude47OpusAlias   = "claude-opus-4-7"
 	AnthropicClaude48OpusAlias   = "claude-opus-4-8"
+	AnthropicClaude5OpusAlias    = "claude-opus-5"
 	AnthropicClaude5SonnetAlias  = "claude-sonnet-5"
 	AnthropicClaudeFable5Alias   = "claude-fable-5"
 )
@@ -361,6 +362,39 @@ func (c Claude48Opus) GetProvider() string {
 
 var _ Model = new(Claude48Opus)
 var _ CostBreakdown = new(Claude48Opus)
+
+// Claude5Opus does not accept temperature or top_p; leave those request fields unset.
+type Claude5Opus struct {
+	ImageFile        map[AnthropicImageType]string
+	PdfFiles         []AnthropicPdf
+	StructuredOutput map[string]any
+	// MaxOutputTokens sets the maximum output tokens (up to 128K).
+	// Defaults to 4096 when zero.
+	MaxOutputTokens int
+}
+
+func (c Claude5Opus) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000005
+}
+
+func (c Claude5Opus) GetInputCostPer1M() float64 {
+	return 5.0
+}
+
+func (c Claude5Opus) GetOutputCostPer1M() float64 {
+	return 25.0
+}
+
+func (c Claude5Opus) GetName() string {
+	return AnthropicClaude5OpusAlias
+}
+
+func (c Claude5Opus) GetProvider() string {
+	return AnthropicProvider
+}
+
+var _ Model = new(Claude5Opus)
+var _ CostBreakdown = new(Claude5Opus)
 
 // Claude5Sonnet does not accept non-default temperature or top_p; leave those request fields unset.
 type Claude5Sonnet struct {

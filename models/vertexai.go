@@ -414,3 +414,69 @@ func (v VertexGemini35Flash) GetProvider() string {
 
 var _ Model = new(VertexGemini35Flash)
 var _ CostBreakdown = new(VertexGemini35Flash)
+
+type VertexGemini35FlashLite struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (v VertexGemini35FlashLite) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000003
+}
+
+func (v VertexGemini35FlashLite) GetInputCostPer1M() float64 {
+	return 0.30
+}
+
+func (v VertexGemini35FlashLite) GetOutputCostPer1M() float64 {
+	return 2.50
+}
+
+func (v VertexGemini35FlashLite) GetName() string {
+	return "gemini-3.5-flash-lite"
+}
+
+func (v VertexGemini35FlashLite) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini35FlashLite)
+var _ CostBreakdown = new(VertexGemini35FlashLite)
+
+type VertexGemini36Flash struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+func (v VertexGemini36Flash) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000015
+}
+
+func (v VertexGemini36Flash) GetInputCostPer1M() float64 {
+	return 1.50
+}
+
+func (v VertexGemini36Flash) GetOutputCostPer1M() float64 {
+	return 7.50
+}
+
+func (v VertexGemini36Flash) GetName() string {
+	return "gemini-3.6-flash"
+}
+
+func (v VertexGemini36Flash) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini36Flash)
+var _ CostBreakdown = new(VertexGemini36Flash)
