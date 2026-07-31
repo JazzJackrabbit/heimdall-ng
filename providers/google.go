@@ -2061,7 +2061,11 @@ func (g Google) doGemini3ProImageRequest(
 		)
 	}
 
-	parts := []any{}
+	// The prompt leads: Gemini image models follow textual instructions far
+	// more reliably when the text part precedes the reference images, and the
+	// request inspector reads naturally too. System message folded in (see
+	// imagePromptText).
+	parts := []any{part{Text: imagePromptText(req)}}
 
 	if len(imageModel.ImageFile) > 0 {
 		for _, img := range imageModel.ImageFile {
@@ -2107,9 +2111,6 @@ func (g Google) doGemini3ProImageRequest(
 			}
 		}
 	}
-
-	// The prompt, system message folded in (see imagePromptText).
-	parts = append(parts, part{Text: imagePromptText(req)})
 
 	requestPayload := map[string]any{
 		"contents": []map[string]any{
@@ -2259,7 +2260,11 @@ func (g Google) doGemini25FlashImageRequest(
 	}
 
 	// Build the request payload
-	parts := []any{}
+	// The prompt leads: Gemini image models follow textual instructions far
+	// more reliably when the text part precedes the reference images, and the
+	// request inspector reads naturally too. System message folded in (see
+	// imagePromptText).
+	parts := []any{part{Text: imagePromptText(req)}}
 
 	// Add image attachments if present
 	if len(imageModel.ImageFile) > 0 {
@@ -2312,9 +2317,6 @@ func (g Google) doGemini25FlashImageRequest(
 			}
 		}
 	}
-
-	// Add the prompt, system message folded in (see imagePromptText).
-	parts = append(parts, part{Text: imagePromptText(req)})
 
 	requestPayload := map[string]any{
 		"contents": []map[string]any{
