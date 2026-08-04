@@ -24,6 +24,8 @@ type imageCaptureTransport struct {
 	path        string
 	contentType string
 	body        []byte
+	/** Overrides the default response body when set. */
+	canned string
 }
 
 func (c *imageCaptureTransport) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -31,7 +33,11 @@ func (c *imageCaptureTransport) RoundTrip(r *http.Request) (*http.Response, erro
 	c.contentType = r.Header.Get("Content-Type")
 	c.body, _ = io.ReadAll(r.Body)
 
-	canned := `{"created": 1, "data": [{"b64_json": "aGVsbG8="}]}`
+	canned := c.canned
+	if canned == "" {
+		canned = `{"created": 1, "data": [{"b64_json": "aGVsbG8="}],
+			"usage": {"total_tokens": 1583, "input_tokens": 55, "output_tokens": 1528}}`
+	}
 
 	return &http.Response{
 		StatusCode: http.StatusOK,
@@ -201,6 +207,55 @@ func TestGPTImageUploadsAllReferencesWithMimeExtensions(t *testing.T) {
 	assert.Equal(t, []byte("hello"), files["reference_1.png"], "png reference")
 	assert.Equal(t, []byte("world"), files["reference_2.jpg"], "jpeg reference")
 	assert.Equal(t, []byte("!"), files["reference_3.webp"], "webp reference")
+}
+
+// The picture is billed as output tokens, so dropping the usage block made
+// every image call read as free to anything metering spend.
+func TestGPTImageReportsUsage(t *testing.T) {
+	t.Parallel()
+
+	for _, name := range []string{"generation", "edit"} {
+		model := &models.GPTImage{}
+		if name == "edit" {
+			model.ImageFile = []models.OpenaiImagePayload{{Url: "data:image/png;base64,aGVsbG8="}}
+		}
+
+		transport := &imageCaptureTransport{}
+		client := http.Client{Transport: transport}
+		openai := providers.NewOpenAI([]string{"test-key"})
+
+		res, err := openai.CompleteResponse(context.Background(), request.Completion{
+			Model:       model,
+			UserMessage: "A lemon",
+			Temperature: 1,
+		}, client, nil)
+		require.NoError(t, err, "%s: CompleteResponse returned an unexpected error", name)
+
+		assert.Equal(t, 55, res.Usage.PromptTokens, "%s: input tokens", name)
+		assert.Equal(t, 1528, res.Usage.CompletionTokens, "%s: output tokens — the image itself", name)
+		assert.Equal(t, 1583, res.Usage.TotalTokens, "%s: total tokens", name)
+	}
+}
+
+// A response without a usage block (DALL·E, or an older shape) still totals
+// correctly rather than reporting a total of zero against non-zero parts.
+func TestGPTImageUsageTotalsWhenAbsent(t *testing.T) {
+	t.Parallel()
+
+	transport := &imageCaptureTransport{
+		canned: `{"created": 1, "data": [{"b64_json": "aGVsbG8="}],
+			"usage": {"input_tokens": 10, "output_tokens": 90}}`,
+	}
+	client := http.Client{Transport: transport}
+	openai := providers.NewOpenAI([]string{"test-key"})
+
+	res, err := openai.CompleteResponse(context.Background(), request.Completion{
+		Model:       &models.GPTImage{},
+		UserMessage: "A lemon",
+		Temperature: 1,
+	}, client, nil)
+	require.NoError(t, err, "CompleteResponse returned an unexpected error")
+	assert.Equal(t, 100, res.Usage.TotalTokens, "total should fall back to input+output")
 }
 
 // A non-http(s) URL must be refused rather than dereferenced.
