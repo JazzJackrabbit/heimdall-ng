@@ -1,5 +1,3 @@
-//go:build perplexity
-
 package providers
 
 import (

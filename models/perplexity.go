@@ -1,5 +1,3 @@
-//go:build perplexity
-
 package models
 
 const PerplexityProvider = "perplexity"

@@ -725,7 +725,7 @@ Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` mod
 - Grok 3 Mini Fast (grok-3-mini-fast)
 - Grok 2 Vision (grok-2-vision-1212)
 
-### Perplexity Models (build tag: `perplexity`)
+### Perplexity Models
 - Sonar Reasoning Pro (sonar-reasoning-pro)
 - Sonar Reasoning (sonar-reasoning)
 - Sonar Pro (sonar-pro)
