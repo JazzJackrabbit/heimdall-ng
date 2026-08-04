@@ -131,6 +131,46 @@ func TestGPTImageWithoutReferencesUsesGenerationEndpoint(t *testing.T) {
 	require.NoError(t, json.Unmarshal(transport.body, &payload), "request body should be JSON")
 	assert.Equal(t, "A red panda sipping bubble tea", payload["prompt"], "prompt field")
 	assert.InDelta(t, 1, payload["n"], 0, "n should be numeric on the JSON endpoint")
+
+	// Unset size must not be sent: the API defaults to "auto" and picks an
+	// aspect ratio for the prompt. Pinning a square here composed every
+	// portrait subject into 1024x1024 and cropped it.
+	assert.NotContains(t, payload, "size", "size must be omitted when the caller did not set one")
+}
+
+// A caller that does ask for a size gets exactly that, on both transports.
+func TestGPTImageSendsAnExplicitSize(t *testing.T) {
+	t.Parallel()
+
+	transport := &imageCaptureTransport{}
+	client := http.Client{Transport: transport}
+	openai := providers.NewOpenAI([]string{"test-key"})
+
+	_, err := openai.CompleteResponse(context.Background(), request.Completion{
+		Model:       &models.GPTImage{Size: models.GPTImageSize1024x1536},
+		UserMessage: "A book cover",
+		Temperature: 1,
+	}, client, nil)
+	require.NoError(t, err, "CompleteResponse returned an unexpected error")
+
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal(transport.body, &payload), "request body should be JSON")
+	assert.Equal(t, "1024x1536", payload["size"], "an explicit size should be sent through")
+
+	editTransport := &imageCaptureTransport{}
+	editClient := http.Client{Transport: editTransport}
+	_, err = openai.CompleteResponse(context.Background(), request.Completion{
+		Model: &models.GPTImage{
+			Size:      models.GPTImageSize1536x1024,
+			ImageFile: []models.OpenaiImagePayload{{Url: "data:image/png;base64,aGVsbG8="}},
+		},
+		UserMessage: "Widen this",
+		Temperature: 1,
+	}, editClient, nil)
+	require.NoError(t, err, "edit CompleteResponse returned an unexpected error")
+
+	fields, _ := parseMultipart(t, editTransport.contentType, editTransport.body)
+	assert.Equal(t, "1536x1024", fields["size"], "the edit endpoint should carry the size too")
 }
 
 // Every reference image is uploaded, and the extension follows the mime type so

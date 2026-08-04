@@ -897,10 +897,13 @@ var _ Model = new(O4Mini)
 
 const ImageModelAlias = "gpt-image-1"
 
+// The sizes gpt-image-1 accepts. The 1792x1024 / 1024x1792 pair that used to
+// sit here are DALL·E 3 sizes; gpt-image-1 rejects them outright.
 const (
+	GPTImageSizeAuto      = "auto"
 	GPTImageSize1024x1024 = "1024x1024"
-	GPTImageSize1792x1024 = "1792x1024"
-	GPTImageSize1024x1792 = "1024x1792"
+	GPTImageSize1536x1024 = "1536x1024"
+	GPTImageSize1024x1536 = "1024x1536"
 
 	GPTImageQualityHigh   = "high"
 	GPTImageQualityMedium = "medium"
@@ -919,7 +922,10 @@ type GPTImage struct {
 	// We keep it for potential future compatibility but default/validate to 1.
 	N int
 
-	// Size of the generated images. Defaults to "1024x1024".
+	// Size of the generated images: one of the GPTImageSize constants. Left
+	// empty the parameter is not sent at all, so the API's own "auto" applies
+	// and the model picks an aspect ratio to suit the prompt — which is what
+	// you want for anything whose composition is not square.
 	Size string
 
 	// Quality of the image that will be generated. Defaults to "auto".
