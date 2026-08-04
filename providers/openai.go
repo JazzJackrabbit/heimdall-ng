@@ -716,19 +716,19 @@ const maxImageEditBytes = 50 << 20
 // same values. moderation is generation-only — the edit endpoint does not
 // document it — so it is opt-in via includeModeration.
 func imageRequestFields(m *models.GPTImage, prompt string, includeModeration bool) [][2]string {
-	size := models.GPTImageSize1024x1024
-	if m.Size != "" {
-		size = m.Size
-	}
-
 	fields := [][2]string{
 		{"model", m.GetName()},
 		{"prompt", prompt},
 		{"n", "1"},
-		{"size", size},
 	}
 
+	// size is omitted unless the caller asks for one. The API's own default is
+	// "auto", which lets the model choose an aspect ratio to suit the prompt;
+	// pinning 1024x1024 here squared every request, so a poster or book cover
+	// that wanted to be portrait was composed into a square and ran off its own
+	// frame.
 	optional := [][2]string{
+		{"size", m.Size},
 		{"background", m.Background},
 		{"quality", m.Quality},
 		{"user", m.User},
