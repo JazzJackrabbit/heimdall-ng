@@ -2230,10 +2230,11 @@ type gemini25FlashImageResponse struct {
 	} `json:"usageMetadata"`
 }
 
-// imagePromptText folds the system message into the user text part. Gemini
-// image models do not apply systemInstruction — Google's image-generation
-// examples put every instruction in the prompt itself — so a brief sent as a
-// system message would be silently dropped.
+// imagePromptText folds the system message into the user text part. Image
+// endpoints take a single prompt and no system role — Gemini ignores
+// systemInstruction on its image models, and OpenAI's image endpoints accept
+// only `prompt` — so a brief sent as a system message would otherwise be
+// silently dropped. Shared by the Gemini and gpt-image-1 paths.
 func imagePromptText(req request.Completion) string {
 	switch {
 	case req.SystemMessage == "":

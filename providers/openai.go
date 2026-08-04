@@ -5,11 +5,13 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
@@ -626,56 +628,25 @@ func (oa Openai) callImageGenerationAPI(
 		)
 	}
 
-	imageReqPayload := map[string]any{
-		"model":  gptImageModel.GetName(),
-		"prompt": req.UserMessage,
-		"n":      1,
-		"size":   models.GPTImageSize1024x1024,
+	// Reference images turn this into an edit. /images/generations takes a
+	// prompt and nothing else, so a model carrying ImageFile has to go to
+	// /images/edits as multipart form data instead — otherwise the attachments
+	// are accepted from the caller and then silently dropped.
+	var (
+		httpReq   *http.Request
+		bodyBytes []byte
+		err       error
+	)
+	prompt := imagePromptText(req)
+	if len(gptImageModel.ImageFile) > 0 {
+		httpReq, bodyBytes, err = newImageEditRequest(ctx, client, gptImageModel, prompt)
+	} else {
+		httpReq, bodyBytes, err = newImageGenerationRequest(ctx, gptImageModel, prompt)
 	}
-
-	if gptImageModel.Background != "" {
-		imageReqPayload["background"] = gptImageModel.Background
-	}
-	if gptImageModel.Size != "" {
-		imageReqPayload["size"] = gptImageModel.Size
-	}
-	if gptImageModel.Quality != "" {
-		imageReqPayload["quality"] = gptImageModel.Quality
-	}
-	if gptImageModel.User != "" {
-		imageReqPayload["user"] = gptImageModel.User
-	}
-	if gptImageModel.OutputFormat != "" {
-		imageReqPayload["output_format"] = gptImageModel.OutputFormat
-	}
-	if gptImageModel.OutputFormat == "jpeg" ||
-		gptImageModel.OutputFormat == "webp" &&
-			gptImageModel.OutputCompression != "" {
-		imageReqPayload["output_compression"] = gptImageModel.OutputCompression
-	}
-	if gptImageModel.Moderation != "" {
-		imageReqPayload["moderation"] = gptImageModel.Moderation
-	}
-
-	bodyBytes, err := json.Marshal(imageReqPayload)
 	if err != nil {
-		return response.Completion{}, 0, fmt.Errorf(
-			"marshal image request: %w",
-			err,
-		)
+		return response.Completion{}, 0, err
 	}
 
-	httpReq, err := http.NewRequestWithContext(ctx, "POST",
-		fmt.Sprintf("%s/images/generations", openAIBaseURL),
-		bytes.NewReader(bodyBytes))
-	if err != nil {
-		return response.Completion{}, 0, fmt.Errorf(
-			"create image request: %w",
-			err,
-		)
-	}
-
-	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+key)
 
 	resp, err := client.Do(httpReq) //nolint:gosec // URL is a known API endpoint
@@ -734,6 +705,210 @@ func (oa Openai) callImageGenerationAPI(
 		RawRequest:  bodyBytes,
 		RawResponse: rawResponse.Bytes(),
 	}, resp.StatusCode, nil
+}
+
+// maxImageEditBytes matches the Image Edit API's documented per-image ceiling,
+// and bounds how much a referenced URL can stream into memory.
+const maxImageEditBytes = 50 << 20
+
+// imageRequestFields collects the gpt-image-1 parameters shared by the
+// generation and edit endpoints, in a stable order so both transports send the
+// same values. moderation is generation-only — the edit endpoint does not
+// document it — so it is opt-in via includeModeration.
+func imageRequestFields(m *models.GPTImage, prompt string, includeModeration bool) [][2]string {
+	size := models.GPTImageSize1024x1024
+	if m.Size != "" {
+		size = m.Size
+	}
+
+	fields := [][2]string{
+		{"model", m.GetName()},
+		{"prompt", prompt},
+		{"n", "1"},
+		{"size", size},
+	}
+
+	optional := [][2]string{
+		{"background", m.Background},
+		{"quality", m.Quality},
+		{"user", m.User},
+		{"output_format", m.OutputFormat},
+	}
+	if m.OutputFormat == "jpeg" || m.OutputFormat == "webp" {
+		optional = append(optional, [2]string{"output_compression", m.OutputCompression})
+	}
+	if includeModeration {
+		optional = append(optional, [2]string{"moderation", m.Moderation})
+	}
+
+	for _, field := range optional {
+		if field[1] != "" {
+			fields = append(fields, field)
+		}
+	}
+
+	return fields
+}
+
+// newImageGenerationRequest builds a prompt-only call to /images/generations.
+func newImageGenerationRequest(
+	ctx context.Context,
+	m *models.GPTImage,
+	prompt string,
+) (*http.Request, []byte, error) {
+	payload := map[string]any{}
+	for _, field := range imageRequestFields(m, prompt, true) {
+		payload[field[0]] = field[1]
+	}
+	// n is a number rather than a string on the JSON endpoint.
+	payload["n"] = 1
+
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal image request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		fmt.Sprintf("%s/images/generations", openAIBaseURL),
+		bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, nil, fmt.Errorf("create image request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	return httpReq, bodyBytes, nil
+}
+
+// newImageEditRequest builds the multipart call to /images/edits, uploading
+// every reference image alongside the prompt.
+func newImageEditRequest(
+	ctx context.Context,
+	client http.Client,
+	m *models.GPTImage,
+	prompt string,
+) (*http.Request, []byte, error) {
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+
+	fields := imageRequestFields(m, prompt, false)
+	for _, field := range fields {
+		if err := writer.WriteField(field[0], field[1]); err != nil {
+			return nil, nil, fmt.Errorf("write image edit field %s: %w", field[0], err)
+		}
+	}
+
+	for i, payload := range m.ImageFile {
+		data, mimeType, err := fetchImagePayload(ctx, client, payload)
+		if err != nil {
+			return nil, nil, fmt.Errorf("read reference image %d: %w", i+1, err)
+		}
+
+		part, err := writer.CreateFormFile(
+			"image[]",
+			fmt.Sprintf("reference_%d%s", i+1, imageFileExtension(mimeType)),
+		)
+		if err != nil {
+			return nil, nil, fmt.Errorf("create image edit part: %w", err)
+		}
+		if _, err := part.Write(data); err != nil {
+			return nil, nil, fmt.Errorf("write image edit part: %w", err)
+		}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, nil, fmt.Errorf("finalize image edit request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		fmt.Sprintf("%s/images/edits", openAIBaseURL), &body)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create image edit request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// The body carries the raw image bytes, so logging it verbatim would put
+	// megabytes into every request log. RawRequest records the parameters only.
+	summary := map[string]any{
+		"endpoint":         "images/edits",
+		"reference_images": len(m.ImageFile),
+	}
+	for _, field := range fields {
+		summary[field[0]] = field[1]
+	}
+	rawRequest, err := json.Marshal(summary)
+	if err != nil {
+		return nil, nil, fmt.Errorf("marshal image edit summary: %w", err)
+	}
+
+	return httpReq, rawRequest, nil
+}
+
+// fetchImagePayload resolves an image payload to raw bytes. Callers supply
+// either an inline data URL or an ordinary http(s) URL, and the edit endpoint
+// needs the decoded bytes either way.
+func fetchImagePayload(
+	ctx context.Context,
+	client http.Client,
+	payload models.OpenaiImagePayload,
+) ([]byte, string, error) {
+	if rest, found := strings.CutPrefix(payload.Url, "data:"); found {
+		meta, encoded, split := strings.Cut(rest, ",")
+		if !split {
+			return nil, "", errors.New("malformed data URL")
+		}
+		data, err := base64.StdEncoding.DecodeString(encoded)
+		if err != nil {
+			return nil, "", fmt.Errorf("decode data URL: %w", err)
+		}
+
+		return data, strings.TrimSuffix(meta, ";base64"), nil
+	}
+
+	// The remaining accepted forms are plain http(s) URLs. Rejecting anything
+	// else keeps schemes like file:// from being dereferenced. The URL itself is
+	// not echoed back in errors — it is usually a presigned URL carrying a
+	// signature.
+	if !strings.HasPrefix(payload.Url, "http://") &&
+		!strings.HasPrefix(payload.Url, "https://") {
+		return nil, "", errors.New("unsupported image URL scheme: expected data, http or https")
+	}
+
+	fetchReq, err := http.NewRequestWithContext(ctx, http.MethodGet, payload.Url, nil)
+	if err != nil {
+		return nil, "", fmt.Errorf("create fetch request: %w", err)
+	}
+
+	//nolint:gosec // G704: the URL comes from the caller's own model payload
+	// (typically a presigned bucket URL) and its scheme is restricted above.
+	resp, err := client.Do(fetchReq)
+	if err != nil {
+		return nil, "", fmt.Errorf("fetch image: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, "", fmt.Errorf("fetch image: received status %d", resp.StatusCode)
+	}
+
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxImageEditBytes))
+	if err != nil {
+		return nil, "", fmt.Errorf("read image: %w", err)
+	}
+
+	return data, resp.Header.Get("Content-Type"), nil
+}
+
+// imageFileExtension maps a mime type onto the extension the Image Edit API
+// expects on an uploaded part; it accepts png, jpeg and webp.
+func imageFileExtension(mimeType string) string {
+	switch {
+	case strings.Contains(mimeType, "jpeg"), strings.Contains(mimeType, "jpg"):
+		return ".jpg"
+	case strings.Contains(mimeType, "webp"):
+		return ".webp"
+	default:
+		return ".png"
+	}
 }
 
 var _ LLMProvider = new(Openai)

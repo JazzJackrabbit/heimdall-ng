@@ -671,7 +671,7 @@ Heimdall supports various models from different providers:
 - O3 Mini (o3-mini-2025-01-31)
 - O3 (o3)
 - O4 Mini (o4-mini)
-- GPT Image (gpt-image-1)
+- GPT Image (gpt-image-1) — pass `ImageFile` to edit reference images instead of generating from the prompt alone
 
 ### Anthropic Models
 - Claude Fable 5 (claude-fable-5) — requires 30-day data retention on the organization
