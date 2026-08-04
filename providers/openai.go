@@ -672,6 +672,15 @@ func (oa Openai) callImageGenerationAPI(
 			Base64JSON    string `json:"b64_json"`
 			RevisedPrompt string `json:"revised_prompt"`
 		} `json:"data"`
+		// gpt-image-1 reports usage on both image endpoints, and the picture
+		// itself is billed as output tokens — so this is where essentially the
+		// whole cost of the call lives. DALL·E models return no usage block;
+		// the zero value is then correct rather than missing.
+		Usage struct {
+			TotalTokens  int `json:"total_tokens"`
+			InputTokens  int `json:"input_tokens"`
+			OutputTokens int `json:"output_tokens"`
+		} `json:"usage"`
 	}
 
 	var rawResponse bytes.Buffer
@@ -691,11 +700,17 @@ func (oa Openai) callImageGenerationAPI(
 		contentBuilder.WriteString(imgData.Base64JSON)
 	}
 
-	// TODO
+	// Reported rather than zeroed. Left at zero, an image call looked free to
+	// anything metering spend downstream — and since the image is billed as
+	// output tokens, "free" was the one thing it definitely was not.
 	usage := response.Usage{
-		PromptTokens:     0,
-		CompletionTokens: 0,
-		TotalTokens:      0,
+		PromptTokens:     imageResp.Usage.InputTokens,
+		CompletionTokens: imageResp.Usage.OutputTokens,
+		TotalTokens:      imageResp.Usage.TotalTokens,
+	}
+	// Older responses carry the parts but not the sum.
+	if usage.TotalTokens == 0 {
+		usage.TotalTokens = usage.PromptTokens + usage.CompletionTokens
 	}
 
 	return response.Completion{
