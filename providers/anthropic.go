@@ -495,15 +495,11 @@ func (a Anthropic) doRequest(
 			}
 		}
 
-		err := scanner.Err()
-		switch err {
-		case nil:
-			fullContent = completeText
-			isRunning = false
-		default:
-			fmt.Println("Error reading input:", err)
-			return response.Completion{}, 0, context.Canceled
+		if err := scanner.Err(); err != nil {
+			return response.Completion{}, 0, fmt.Errorf("read stream: %w", err)
 		}
+		fullContent = completeText
+		isRunning = false
 	}
 
 	rawResp, err := json.Marshal(rawEvents)
