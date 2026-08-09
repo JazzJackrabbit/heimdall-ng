@@ -242,20 +242,6 @@ func (oa Openai) Name() string {
 	return models.OpenaiProvider
 }
 
-// Check if an error is retryable based on the status code
-// func isRetryableError(statusCode int) bool {
-// 	switch statusCode {
-// 	case http.StatusTooManyRequests, // Rate limit error
-// 		http.StatusInternalServerError,
-// 		http.StatusBadGateway,
-// 		http.StatusServiceUnavailable,
-// 		http.StatusGatewayTimeout:
-// 		return true
-// 	default:
-// 		return false
-// 	}
-// }
-
 // tryWithBackup implements LLMProvider.
 func (oa Openai) tryWithBackup(
 	ctx context.Context,

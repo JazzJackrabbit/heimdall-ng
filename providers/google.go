@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -906,8 +905,6 @@ func (g Google) doRequest(
 	}
 
 	apiURL := fmt.Sprintf(googleBaseURL, req.Model.GetName(), key)
-	log.Printf("[Heimdall] Making request to Google API: model=%s url=%s", req.Model.GetName(), strings.Split(apiURL, "?")[0])
-	log.Printf("[Heimdall] Request body size: %d bytes", len(requestBody))
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		apiURL,
@@ -916,25 +913,20 @@ func (g Google) doRequest(
 		return response.Completion{}, 0, err
 	}
 
-	log.Printf("[Heimdall] Sending HTTP request...")
 	resp, err := client.Do(httpReq) //nolint:gosec // URL is a known API endpoint
 	if err != nil {
-		log.Printf("[Heimdall] HTTP request failed: %v", err)
 		return response.Completion{}, 0, err
 	}
 	defer resp.Body.Close()
-	log.Printf("[Heimdall] Got response: status=%d", resp.StatusCode) //nolint:gosec // status code is an int, not user input
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, readErr := io.ReadAll(resp.Body)
 		if readErr != nil {
-			log.Printf("[Heimdall] Error response (status %d), failed to read body: %v", resp.StatusCode, readErr) //nolint:gosec // status code is an int
 			return response.Completion{}, resp.StatusCode, fmt.Errorf(
 				"received non-200 status code (%d), failed to read error body: %w",
 				resp.StatusCode, readErr,
 			)
 		}
-		log.Printf("[Heimdall] Error response (status %d): %s", resp.StatusCode, string(bodyBytes)) //nolint:gosec // status code is an int
 		return response.Completion{}, resp.StatusCode, fmt.Errorf(
 			"received non-200 status code (%d): %s",
 			resp.StatusCode, string(bodyBytes),
