@@ -28,7 +28,8 @@ func (r *Router) Stream(
 
 	models := append([]models.Model{req.Model}, req.Fallback...)
 	var resp response.Completion
-	var err error
+	// Left standing if every candidate model's provider is unregistered.
+	err := error(ErrUnsupportedProvider)
 
 	requestLog := response.Logging{
 		Events: []response.Event{

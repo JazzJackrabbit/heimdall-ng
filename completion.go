@@ -34,7 +34,8 @@ func (r *Router) Complete(
 	}
 
 	models := append([]models.Model{req.Model}, req.Fallback...)
-	var err error
+	// Left standing if every candidate model's provider is unregistered.
+	err := error(ErrUnsupportedProvider)
 	resp := response.Completion{}
 
 	for _, model := range models {
