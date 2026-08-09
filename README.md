@@ -1,9 +1,9 @@
 # Heimdall
 
-Heimdall is a robust Go library for making LLM (Large Language Model) requests more consistent by providing automatic retries and fallback options. It acts as a router between your application and various LLM providers, ensuring reliable and efficient interaction with AI models.
+Heimdall is a Go library for making LLM (Large Language Model) requests more consistent by providing model fallbacks and API key rotation. It acts as a router between your application and various LLM providers. This is a maintained fork of [flyx-ai/heimdall](https://github.com/flyx-ai/heimdall).
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/JazzJackrabbit/heimdall.svg)](https://pkg.go.dev/github.com/JazzJackrabbit/heimdall)
-[![Release](https://img.shields.io/github/v/release/JazzJackrabbit/heimdall)](https://github.com/JazzJackrabbit/heimdall/releases)
+[![Go Reference](https://pkg.go.dev/badge/github.com/JazzJackrabbit/heimdall-ng.svg)](https://pkg.go.dev/github.com/JazzJackrabbit/heimdall-ng)
+[![Release](https://img.shields.io/github/v/release/JazzJackrabbit/heimdall-ng)](https://github.com/JazzJackrabbit/heimdall-ng/releases)
 [![License: BSD-3](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
 
 ## Contents
@@ -25,8 +25,8 @@ Heimdall is a robust Go library for making LLM (Large Language Model) requests m
 ## Features
 
 - **Provider Abstraction**: Unified interface for multiple LLM providers (OpenAI, Anthropic, Google/Gemini, Grok, VertexAI, OpenRouter, Perplexity)
-- **Request Retries**: Automatic retry mechanism for handling transient failures
-- **Model Fallbacks**: Configurable fallback models if primary model fails
+- **Model Fallbacks**: Configurable fallback models if the primary model fails
+- **API Key Rotation**: Pass multiple keys per provider; requests rotate to a backup key on failure
 - **Streaming Support**: Fully supports streaming responses for real-time applications
 - **Multimodal Inputs**: Support for PDFs, images, and other file types
 - **Structured Output**: Format responses as JSON using provider-specific schema formats
@@ -35,7 +35,7 @@ Heimdall is a robust Go library for making LLM (Large Language Model) requests m
 ## Installation
 
 ```bash
-go get github.com/JazzJackrabbit/heimdall
+go get github.com/JazzJackrabbit/heimdall-ng
 ```
 
 ## Quick Start
@@ -52,10 +52,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/JazzJackrabbit/heimdall"
-	"github.com/JazzJackrabbit/heimdall/models"
-	"github.com/JazzJackrabbit/heimdall/providers"
-	"github.com/JazzJackrabbit/heimdall/request"
+	"github.com/JazzJackrabbit/heimdall-ng"
+	"github.com/JazzJackrabbit/heimdall-ng/models"
+	"github.com/JazzJackrabbit/heimdall-ng/providers"
+	"github.com/JazzJackrabbit/heimdall-ng/request"
 )
 
 func main() {
@@ -96,7 +96,7 @@ func main() {
 }
 ```
 
-> **Two ways to call.** The recommended entry point is the **router** (`router.Complete` / `router.Stream`), which adds retries and model fallbacks on top of your providers. Every provider also exposes the lower-level `CompleteResponse` / `StreamResponse` methods directly — several examples below use these to keep the snippet self-contained, but you can route any of them through the router the same way.
+> **Two ways to call.** The recommended entry point is the **router** (`router.Complete` / `router.Stream`), which adds model fallbacks on top of your providers. Every provider also exposes the lower-level `CompleteResponse` / `StreamResponse` methods directly — several examples below use these to keep the snippet self-contained, but you can route any of them through the router the same way.
 
 ## Provider Setup
 
