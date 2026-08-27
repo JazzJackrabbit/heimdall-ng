@@ -8,8 +8,10 @@ import (
 )
 
 func TestPerplexityStreamingUsageParsing(t *testing.T) {
-	body := `data: {"choices":[{"delta":{"content":"Hello"}}],"usage":{"prompt_tokens":9,"completion_tokens":4,"total_tokens":13}}` + "\n\n" +
-		"data: [DONE]\n\n"
+	body := "event: response.output_text.delta\n" +
+		`data: {"type":"response.output_text.delta","delta":"Hello"}` + "\n\n" +
+		"event: response.completed\n" +
+		`data: {"type":"response.completed","response":{"id":"r1","model":"openai/gpt-5.6-luna","output_text":"Hello","usage":{"input_tokens":9,"output_tokens":4,"total_tokens":13}}}` + "\n\n"
 
 	server := sseServer(t, body)
 	original := perplexityBaseUrl
@@ -24,6 +26,7 @@ func TestPerplexityStreamingUsageParsing(t *testing.T) {
 
 	assert.Equal(t, "Hello", res.Content)
 	assert.Equal(t, "Hello", streamed)
+	assert.Equal(t, "openai/gpt-5.6-luna", res.Model)
 	assert.Equal(t, 9, res.Usage.PromptTokens)
 	assert.Equal(t, 4, res.Usage.CompletionTokens)
 	assert.Equal(t, 13, res.Usage.TotalTokens)

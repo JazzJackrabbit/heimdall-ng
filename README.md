@@ -723,9 +723,10 @@ Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` mod
 - Grok 4.3 (grok-4.3)
 
 ### Perplexity Models
-- Sonar Reasoning Pro (sonar-reasoning-pro)
-- Sonar Pro (sonar-pro)
-- Sonar (sonar)
+Requests go to the Agent API (`https://api.perplexity.ai/v1/agent`). Each type selects the preset Perplexity recommends in place of the Sonar model, and the response reports the model the preset ran.
+- Sonar Reasoning Pro (sonar-reasoning-pro), preset `medium`
+- Sonar Pro (sonar-pro), preset `low`
+- Sonar (sonar), preset `fast`
 
 ### OpenRouter
 - Supports any model available on OpenRouter via dynamic model names

@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 	"github.com/JazzJackrabbit/heimdall-ng/response"
 )
 
-var perplexityBaseUrl = "https://api.perplexity.ai/chat/completions"
+var perplexityBaseUrl = "https://api.perplexity.ai/v1/agent"
 
 type Perplexity struct {
 	apiKeys []string
@@ -85,6 +86,62 @@ func (p Perplexity) CompleteResponse(
 	return p.tryWithBackup(ctx, req, client, nil, reqLog)
 }
 
+// perplexityPreset returns the Agent API preset Perplexity recommends in
+// place of each Sonar model, together with the model's structured output
+// schema. A preset selects the underlying model, tools and token limits; the
+// response reports the model that ran.
+func perplexityPreset(m models.Model) (string, map[string]any) {
+	switch m := m.(type) {
+	case models.Sonar:
+		return "fast", m.StructuredOutput
+	case models.SonarPro:
+		return "low", m.StructuredOutput
+	case models.SonarReasoningPro:
+		return "medium", m.StructuredOutput
+	case models.SonarReasoning: //nolint:staticcheck // backward compatibility
+		return "medium", m.StructuredOutput
+	default:
+		return "", nil
+	}
+}
+
+type perplexityInputItem struct {
+	Type    string `json:"type"`
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type perplexityRequest struct {
+	Preset         string                `json:"preset"`
+	Instructions   string                `json:"instructions,omitempty"`
+	Input          []perplexityInputItem `json:"input"`
+	Stream         bool                  `json:"stream"`
+	Temperature    float32               `json:"temperature,omitempty"`
+	TopP           float32               `json:"top_p,omitempty"`
+	ResponseFormat map[string]any        `json:"response_format,omitempty"`
+}
+
+type perplexityError struct {
+	Message string `json:"message"`
+}
+
+// perplexityEvent is the subset of an Agent API stream event the provider
+// reads: text deltas, the completed response with its usage, and failures.
+type perplexityEvent struct {
+	Type     string           `json:"type"`
+	Delta    string           `json:"delta"`
+	Error    *perplexityError `json:"error"`
+	Response struct {
+		Model string `json:"model"`
+		Usage struct {
+			InputTokens  int `json:"input_tokens"`
+			OutputTokens int `json:"output_tokens"`
+			TotalTokens  int `json:"total_tokens"`
+		} `json:"usage"`
+		Error *perplexityError `json:"error"`
+	} `json:"response"`
+}
+
 // doRequest implements LLMProvider.
 func (p Perplexity) doRequest(
 	ctx context.Context,
@@ -93,60 +150,42 @@ func (p Perplexity) doRequest(
 	chunkHandler func(chunk string) error,
 	key string,
 ) (response.Completion, int, error) {
-	hisLen := len(req.History)
-	requestMessages := make([]requestMessage, hisLen+2)
-	for i, his := range req.History {
-		requestMessages[i] = requestMessage(requestMessage{
+	preset, structuredOutput := perplexityPreset(req.Model)
+	if preset == "" {
+		return response.Completion{}, 0, fmt.Errorf(
+			"unsupported Perplexity model: %s",
+			req.Model.GetName(),
+		)
+	}
+
+	input := make([]perplexityInputItem, 0, len(req.History)+1)
+	for _, his := range req.History {
+		input = append(input, perplexityInputItem{
+			Type:    "message",
 			Role:    his.Role,
 			Content: his.Content,
 		})
 	}
+	input = append(input, perplexityInputItem{
+		Type:    "message",
+		Role:    "user",
+		Content: req.UserMessage,
+	})
 
-	if hisLen == 0 {
-		requestMessages[0] = requestMessage(requestMessage{
-			Role:    "system",
-			Content: req.SystemMessage,
-		})
-		requestMessages[1] = requestMessage(requestMessage{
-			Role:    "user",
-			Content: req.UserMessage,
-		})
-	}
-	if hisLen != 0 {
-		requestMessages[hisLen+1] = requestMessage(requestMessage{
-			Role:    "system",
-			Content: req.SystemMessage,
-		})
-		requestMessages[hisLen+2] = requestMessage(requestMessage{
-			Role:    "user",
-			Content: req.UserMessage,
-		})
-	}
-
-	apiReq := openAIRequest{
-		Model:         req.Model.GetName(),
-		Messages:      requestMessages,
-		Stream:        true,
-		StreamOptions: streamOptions{IncludeUsage: true},
-		Temperature:   1.0,
-	}
-
-	var structuredOutput map[string]any
-	switch m := req.Model.(type) {
-	case models.SonarReasoningPro:
-		structuredOutput = m.StructuredOutput
-	case models.SonarReasoning: //nolint:staticcheck // backward compatibility
-		structuredOutput = m.StructuredOutput
-	case models.SonarPro:
-		structuredOutput = m.StructuredOutput
-	case models.Sonar:
-		structuredOutput = m.StructuredOutput
+	apiReq := perplexityRequest{
+		Preset:       preset,
+		Instructions: req.SystemMessage,
+		Input:        input,
+		Stream:       true,
+		Temperature:  req.Temperature,
+		TopP:         req.TopP,
 	}
 
 	if len(structuredOutput) > 0 {
 		apiReq.ResponseFormat = map[string]any{
 			"type": "json_schema",
 			"json_schema": map[string]any{
+				"name":   "response",
 				"schema": structuredOutput,
 			},
 		}
@@ -195,6 +234,7 @@ func (p Perplexity) doRequest(
 	var fullContent strings.Builder
 	var usage response.Usage
 	var rawEvents []json.RawMessage
+	model := req.Model.GetName()
 	chunks := 0
 	now := time.Now()
 
@@ -203,7 +243,7 @@ func (p Perplexity) doRequest(
 			return response.Completion{}, 0, context.Canceled
 		}
 		line, err := reader.ReadString('\n')
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -213,40 +253,57 @@ func (p Perplexity) doRequest(
 			)
 		}
 
-		line = strings.TrimPrefix(line, "data: ")
+		// Events arrive as "event:" and "data:" lines; the type is repeated
+		// inside the data payload, so only data lines are read.
 		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "data:") {
+			continue
+		}
+		line = strings.TrimSpace(strings.TrimPrefix(line, "data:"))
 		if line == "" || line == "[DONE]" {
 			continue
 		}
 
-		var chunk openAIChunk
-		if err := json.Unmarshal([]byte(line), &chunk); err != nil {
+		var event perplexityEvent
+		if err := json.Unmarshal([]byte(line), &event); err != nil {
 			return response.Completion{}, 0, fmt.Errorf(
-				"unmarshal chunk: %w",
+				"unmarshal event: %w",
 				err,
 			)
 		}
 
 		rawEvents = append(rawEvents, json.RawMessage(line))
+		chunks++
 
-		if len(chunk.Choices) > 0 {
-			contentDelta := chunk.Choices[0].Delta.Content
-			fullContent.WriteString(contentDelta)
+		switch event.Type {
+		case "response.output_text.delta":
+			fullContent.WriteString(event.Delta)
 
 			if chunkHandler != nil {
-				if err := chunkHandler(contentDelta); err != nil {
+				if err := chunkHandler(event.Delta); err != nil {
 					return response.Completion{}, 0, err
 				}
 			}
-		}
-
-		chunks++
-		if chunk.Usage.TotalTokens != 0 {
-			usage = response.Usage{
-				PromptTokens:     chunk.Usage.PromptTokens,
-				CompletionTokens: chunk.Usage.CompletionTokens,
-				TotalTokens:      chunk.Usage.TotalTokens,
+		case "response.completed":
+			if event.Response.Model != "" {
+				model = event.Response.Model
 			}
+			usage = response.Usage{
+				PromptTokens:     event.Response.Usage.InputTokens,
+				CompletionTokens: event.Response.Usage.OutputTokens,
+				TotalTokens:      event.Response.Usage.TotalTokens,
+			}
+		case "response.failed", "error":
+			message := line
+			if event.Error != nil && event.Error.Message != "" {
+				message = event.Error.Message
+			} else if event.Response.Error != nil && event.Response.Error.Message != "" {
+				message = event.Response.Error.Message
+			}
+			return response.Completion{}, 0, fmt.Errorf(
+				"perplexity request failed: %s",
+				message,
+			)
 		}
 	}
 
@@ -258,7 +315,7 @@ func (p Perplexity) doRequest(
 
 	return response.Completion{
 		Content:     finalContent,
-		Model:       req.Model.GetName(),
+		Model:       model,
 		Usage:       usage,
 		RawRequest:  body,
 		RawResponse: rawResp,
