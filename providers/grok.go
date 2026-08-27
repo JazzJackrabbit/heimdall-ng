@@ -71,6 +71,8 @@ func (g Grok) doRequest(
 		structuredOutput = m.StructuredOutput
 	case models.Grok45:
 		structuredOutput = m.StructuredOutput
+	case models.Grok46:
+		structuredOutput = m.StructuredOutput
 	}
 
 	if len(structuredOutput) > 0 {
@@ -418,6 +420,8 @@ func prepareGrokRequest(
 	case *models.Grok43:
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
 	case *models.Grok45:
+		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
+	case *models.Grok46:
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
 	default:
 		return prepareBasicMessages(request, systemInst, userMsg, history)

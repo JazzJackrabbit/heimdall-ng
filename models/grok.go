@@ -26,6 +26,7 @@ const (
 	Grok4FastAlias = "grok-4-fast"
 	Grok43Alias    = "grok-4.3"
 	Grok45Alias    = "grok-4.5"
+	Grok46Alias    = "grok-4.6"
 )
 
 type GrokImagePayload struct {
@@ -260,3 +261,34 @@ func (Grok45) GetProvider() string {
 
 var _ Model = new(Grok45)
 var _ CostBreakdown = new(Grok45)
+
+type Grok46 struct {
+	ImageFile        []GrokImagePayload
+	StructuredOutput map[string]any
+}
+
+func (g Grok46) EstimateCost(text string) float64 {
+	inputCostPerToken := 0.000002
+	outputCostPerToken := 0.000006
+	averageCost := (inputCostPerToken + outputCostPerToken) / 2
+	return (float64(len(text)) / 4) * averageCost
+}
+
+func (g Grok46) GetInputCostPer1M() float64 {
+	return 2.0
+}
+
+func (g Grok46) GetOutputCostPer1M() float64 {
+	return 6.0
+}
+
+func (Grok46) GetName() string {
+	return Grok46Alias
+}
+
+func (Grok46) GetProvider() string {
+	return GrokProvider
+}
+
+var _ Model = new(Grok46)
+var _ CostBreakdown = new(Grok46)

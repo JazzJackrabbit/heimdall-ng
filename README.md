@@ -717,6 +717,7 @@ Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` mod
 - Gemini 2.5 Flash Image (gemini-2.5-flash-image)
 
 ### Grok Models
+- Grok 4.6 (grok-4.6)
 - Grok 4.5 (grok-4.5)
 - Grok 4.3 (grok-4.3)
 
