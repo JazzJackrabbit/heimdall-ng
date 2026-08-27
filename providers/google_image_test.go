@@ -18,10 +18,12 @@ import (
 // captureTransport records the outgoing request body and returns a canned
 // Gemini image response, so payload construction is testable offline.
 type captureTransport struct {
+	path string
 	body []byte
 }
 
 func (c *captureTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	c.path = r.URL.Path
 	c.body, _ = io.ReadAll(r.Body)
 	canned := `{
 		"candidates": [{"content": {"parts": [{"inlineData": {"mimeType": "image/png", "data": "aGVsbG8="}}]}}],
@@ -42,7 +44,8 @@ func TestGoogleImageModelsFoldSystemMessageIntoPrompt(t *testing.T) {
 
 	for _, m := range []models.Model{
 		&models.Gemini25FlashImage{},
-		&models.Gemini3ProImagePreview{},
+		&models.Gemini31FlashImage{},
+		&models.Gemini3ProImage{},
 	} {
 		transport := &captureTransport{}
 		client := http.Client{Transport: transport}
@@ -56,6 +59,7 @@ func TestGoogleImageModelsFoldSystemMessageIntoPrompt(t *testing.T) {
 		}, client, nil)
 		require.NoError(t, err, "%T: CompleteResponse returned an unexpected error", m)
 		assert.Equal(t, "aGVsbG8=", res.Content, "%T: content should be the image base64", m)
+		assert.Equal(t, "/v1beta/models/"+m.GetName()+":generateContent", transport.path, "%T: request should target the model by name", m)
 
 		var payload map[string]any
 		require.NoError(t, json.Unmarshal(transport.body, &payload), "%T: request body should be JSON", m)

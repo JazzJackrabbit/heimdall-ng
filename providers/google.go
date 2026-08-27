@@ -650,11 +650,8 @@ func (g Google) doRequest(
 	key string,
 ) (response.Completion, int, error) {
 	// Handle image generation models separately
-	if _, ok := req.Model.(*models.Gemini25FlashImage); ok {
-		return g.doGemini25FlashImageRequest(ctx, req, client, key)
-	}
-	if _, ok := req.Model.(*models.Gemini3ProImagePreview); ok {
-		return g.doGemini3ProImageRequest(ctx, req, client, key)
+	if params, ok := geminiImageParamsOf(req.Model); ok {
+		return g.doGeminiImageRequest(ctx, req, client, key, params)
 	}
 
 	if req.SystemMessage == "" || req.UserMessage == "" {
@@ -2128,19 +2125,62 @@ func prepareGemini35FlashRequest(
 	return request, nil
 }
 
-func (g Google) doGemini3ProImageRequest(
+// geminiImageParams is the subset of an image model's fields the request
+// builder reads, so one code path serves every Gemini image model.
+type geminiImageParams struct {
+	AspectRatio     models.AspectRatio
+	ImageFile       []models.GoogleImagePayload
+	PdfFiles        []models.GooglePdf
+	ThinkingLevel   models.ThinkingLevel
+	MediaResolution models.MediaResolution
+}
+
+// geminiImageParamsOf reports whether m is a Gemini image generation model
+// and, if so, returns the fields that shape its request.
+func geminiImageParamsOf(m models.Model) (geminiImageParams, bool) {
+	switch im := m.(type) {
+	case *models.Gemini25FlashImage:
+		return geminiImageParams{
+			AspectRatio: im.AspectRatio,
+			ImageFile:   im.ImageFile,
+			PdfFiles:    im.PdfFiles,
+		}, true
+	case *models.Gemini31FlashImage:
+		return geminiImageParams{
+			AspectRatio: im.AspectRatio,
+			ImageFile:   im.ImageFile,
+			PdfFiles:    im.PdfFiles,
+		}, true
+	case *models.Gemini3ProImage:
+		return geminiImageParams{
+			AspectRatio:     im.AspectRatio,
+			ImageFile:       im.ImageFile,
+			PdfFiles:        im.PdfFiles,
+			ThinkingLevel:   im.ThinkingLevel,
+			MediaResolution: im.MediaResolution,
+		}, true
+	case *models.Gemini3ProImagePreview: //nolint:staticcheck // backward compatibility
+		return geminiImageParams{
+			AspectRatio:     im.AspectRatio,
+			ImageFile:       im.ImageFile,
+			PdfFiles:        im.PdfFiles,
+			ThinkingLevel:   im.ThinkingLevel,
+			MediaResolution: im.MediaResolution,
+		}, true
+	default:
+		return geminiImageParams{}, false
+	}
+}
+
+// doGeminiImageRequest calls generateContent on an image model and returns
+// the first inline image as base64 content.
+func (g Google) doGeminiImageRequest(
 	ctx context.Context,
 	req request.Completion,
 	client http.Client,
 	key string,
+	imageModel geminiImageParams,
 ) (response.Completion, int, error) {
-	imageModel, ok := req.Model.(*models.Gemini3ProImagePreview)
-	if !ok {
-		return response.Completion{}, 0, errors.New(
-			"internal error: model is not Gemini3ProImagePreview",
-		)
-	}
-
 	// The prompt leads: Gemini image models follow textual instructions far
 	// more reliably when the text part precedes the reference images, and the
 	// request inspector reads naturally too. System message folded in (see
@@ -2230,7 +2270,7 @@ func (g Google) doGemini3ProImageRequest(
 
 	url := fmt.Sprintf(
 		"https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
-		models.Gemini3ProImageModel,
+		req.Model.GetName(),
 		key,
 	)
 
@@ -2249,7 +2289,7 @@ func (g Google) doGemini3ProImageRequest(
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return response.Completion{}, resp.StatusCode, fmt.Errorf(
-			"received non-200 status code (%d): %s",
+			"received non-200 status code (%d) from Gemini image generation API: %s",
 			resp.StatusCode, string(bodyBytes),
 		)
 	}
@@ -2279,7 +2319,7 @@ func (g Google) doGemini3ProImageRequest(
 
 	return response.Completion{
 		Content: imgData,
-		Model:   models.Gemini3ProImageModel,
+		Model:   req.Model.GetName(),
 		Usage: response.Usage{
 			PromptTokens:     imageResp.UsageMetadata.PromptTokenCount,
 			CompletionTokens: imageResp.UsageMetadata.CandidatesTokenCount,
@@ -2324,171 +2364,4 @@ func imagePromptText(req request.Completion) string {
 	default:
 		return req.SystemMessage + "\n\n" + req.UserMessage
 	}
-}
-
-// doGemini25FlashImageRequest handles image generation via Gemini 2.5 Flash Image model
-func (g Google) doGemini25FlashImageRequest(
-	ctx context.Context,
-	req request.Completion,
-	client http.Client,
-	key string,
-) (response.Completion, int, error) {
-	imageModel, ok := req.Model.(*models.Gemini25FlashImage)
-	if !ok {
-		return response.Completion{}, 0, errors.New(
-			"internal error: model is not Gemini25FlashImage",
-		)
-	}
-
-	// Build the request payload
-	// The prompt leads: Gemini image models follow textual instructions far
-	// more reliably when the text part precedes the reference images, and the
-	// request inspector reads naturally too. System message folded in (see
-	// imagePromptText).
-	parts := []any{part{Text: imagePromptText(req)}}
-
-	// Add image attachments if present
-	if len(imageModel.ImageFile) > 0 {
-		for _, img := range imageModel.ImageFile {
-			base64 := img.Data
-
-			fullBase64 := fmt.Sprintf("data:%s;base64,", img.MimeType)
-			if strings.Contains(img.Data, fullBase64) {
-				base64Part := strings.Split(
-					img.Data,
-					fullBase64,
-				)
-				if len(base64Part) > 1 {
-					base64 = base64Part[1]
-				}
-			}
-
-			parts = append(parts, filePart{
-				InlineData: imageData{
-					MimeType: img.MimeType,
-					Data:     base64,
-				},
-			})
-		}
-	}
-
-	// Add PDF attachments if present
-	if len(imageModel.PdfFiles) > 0 {
-		for _, pdf := range imageModel.PdfFiles {
-			pdfStr := string(pdf)
-			if strings.HasPrefix(pdfStr, "https://") {
-				parts = append(parts, fileURI{
-					FileData: fileData{
-						MimeType: "application/pdf",
-						FileURI:  pdfStr,
-					},
-				})
-			} else {
-				data := pdfStr
-				prefix := fmt.Sprintf("data:%s;base64,", "application/pdf")
-				if pdfParts := strings.SplitN(pdfStr, prefix, 2); len(pdfParts) == 2 {
-					data = pdfParts[1]
-				}
-				parts = append(parts, filePart{
-					InlineData: imageData{
-						MimeType: "application/pdf",
-						Data:     data,
-					},
-				})
-			}
-		}
-	}
-
-	requestPayload := map[string]any{
-		"contents": []map[string]any{
-			{
-				"parts": parts,
-				"role":  "user",
-			},
-		},
-	}
-
-	// Add generation config
-	// https://ai.google.dev/gemini-api/docs/image-generation
-	generationConfig := map[string]any{
-		"responseModalities": []string{"Text", "Image"},
-	}
-
-	if imageModel.AspectRatio != "" {
-		imageConfig := map[string]any{
-			"aspectRatio": string(imageModel.AspectRatio),
-		}
-		generationConfig["imageConfig"] = imageConfig
-	}
-
-	requestPayload["generationConfig"] = generationConfig
-
-	bodyBytes, err := json.Marshal(requestPayload)
-	if err != nil {
-		return response.Completion{}, 0, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	// Use generateContent endpoint for Gemini 2.5 Flash Image
-	url := fmt.Sprintf(
-		"https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
-		models.Gemini25FlashImageModel,
-		key,
-	)
-
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return response.Completion{}, 0, fmt.Errorf("failed to create HTTP request: %w", err)
-	}
-
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(httpReq) //nolint:gosec // URL is a known API endpoint
-	if err != nil {
-		return response.Completion{}, 0, fmt.Errorf("HTTP request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return response.Completion{}, resp.StatusCode, fmt.Errorf(
-			"received non-200 status code (%d) from Gemini image generation API: %s",
-			resp.StatusCode, string(bodyBytes),
-		)
-	}
-
-	var rawResponse bytes.Buffer
-	teeBody := io.TeeReader(resp.Body, &rawResponse)
-	var imageResp gemini25FlashImageResponse
-	if err := json.NewDecoder(teeBody).Decode(&imageResp); err != nil {
-		return response.Completion{}, 0, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	if len(imageResp.Candidates) == 0 || len(imageResp.Candidates[0].Content.Parts) == 0 {
-		return response.Completion{}, 0, errors.New("no image data in response")
-	}
-
-	// Extract base64 image data from parts
-	var imageData string
-	for _, part := range imageResp.Candidates[0].Content.Parts {
-		if part.InlineData != nil && part.InlineData.Data != "" {
-			imageData = part.InlineData.Data
-			break
-		}
-	}
-
-	if imageData == "" {
-		return response.Completion{}, 0, errors.New("no image data found in response parts")
-	}
-
-	return response.Completion{
-		Content: imageData,
-		Model:   models.Gemini25FlashImageModel,
-		Usage: response.Usage{
-			PromptTokens:     imageResp.UsageMetadata.PromptTokenCount,
-			CompletionTokens: imageResp.UsageMetadata.CandidatesTokenCount,
-			TotalTokens:      imageResp.UsageMetadata.TotalTokenCount,
-		},
-		RawRequest:  bodyBytes,
-		RawResponse: rawResponse.Bytes(),
-	}, http.StatusOK, nil
 }

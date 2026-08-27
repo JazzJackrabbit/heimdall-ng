@@ -17,15 +17,19 @@ const (
 	Gemini25FlashImageModel = "gemini-2.5-flash-image"
 	// Deprecated: gemini-3-pro-preview has been shut down by Google. Requests to this model will fail.
 	// Use Gemini31ProModel (gemini-3.1-pro-preview) as a replacement.
-	Gemini3ProModel        = "gemini-3-pro-preview"
-	Gemini3ProImageModel   = "gemini-3-pro-image-preview"
-	Gemini3FlashModel      = "gemini-3-flash-preview"
-	Gemini31ProModel       = "gemini-3.1-pro-preview"
-	Gemini31FlashLiteModel = "gemini-3.1-flash-lite"
-	Gemini35FlashModel     = "gemini-3.5-flash"
-	Gemini35FlashLiteModel = "gemini-3.5-flash-lite"
-	Gemini36FlashModel     = "gemini-3.6-flash"
-	Gemini37FlashModel     = "gemini-3.7-flash"
+	Gemini3ProModel = "gemini-3-pro-preview"
+	// Deprecated: gemini-3-pro-image-preview was shut down by Google on June 25, 2026. Requests to this model will fail.
+	// Use Gemini3ProImageModel (gemini-3-pro-image) as a replacement.
+	Gemini3ProImagePreviewModel = "gemini-3-pro-image-preview"
+	Gemini3ProImageModel        = "gemini-3-pro-image"
+	Gemini3FlashModel           = "gemini-3-flash-preview"
+	Gemini31ProModel            = "gemini-3.1-pro-preview"
+	Gemini31FlashLiteModel      = "gemini-3.1-flash-lite"
+	Gemini31FlashImageModel     = "gemini-3.1-flash-image"
+	Gemini35FlashModel          = "gemini-3.5-flash"
+	Gemini35FlashLiteModel      = "gemini-3.5-flash-lite"
+	Gemini36FlashModel          = "gemini-3.6-flash"
+	Gemini37FlashModel          = "gemini-3.7-flash"
 )
 
 type ThinkBudget string
@@ -379,6 +383,8 @@ func (g Gemini3ProPreview) GetProvider() string {
 var _ Model = new(Gemini3ProPreview)
 var _ CostBreakdown = new(Gemini3ProPreview)
 
+// Deprecated: gemini-3-pro-image-preview was shut down by Google on June 25, 2026. Requests to this model will fail.
+// Use Gemini3ProImage (gemini-3-pro-image) as a replacement.
 type Gemini3ProImagePreview struct {
 	NumberOfImages  int
 	AspectRatio     AspectRatio
@@ -406,7 +412,7 @@ func (g Gemini3ProImagePreview) GetOutputCostPer1M() float64 {
 }
 
 func (g Gemini3ProImagePreview) GetName() string {
-	return Gemini3ProImageModel
+	return Gemini3ProImagePreviewModel
 }
 
 func (g Gemini3ProImagePreview) GetProvider() string {
@@ -650,3 +656,77 @@ func (g Gemini37Flash) GetProvider() string {
 
 var _ Model = new(Gemini37Flash)
 var _ CostBreakdown = new(Gemini37Flash)
+
+type Gemini3ProImage struct {
+	NumberOfImages  int
+	AspectRatio     AspectRatio
+	ImageFile       []GoogleImagePayload
+	PdfFiles        []GooglePdf
+	Files           []GoogleFilePayload
+	ThinkingLevel   ThinkingLevel
+	MediaResolution MediaResolution
+}
+
+func (g Gemini3ProImage) EstimateCost(text string) float64 {
+	// 1K/2K image = $0.134 at $120 per 1M output tokens
+	numImages := g.NumberOfImages
+	if numImages == 0 {
+		numImages = 1
+	}
+	return float64(numImages) * 0.134
+}
+
+func (g Gemini3ProImage) GetInputCostPer1M() float64 {
+	return 2.0
+}
+
+func (g Gemini3ProImage) GetOutputCostPer1M() float64 {
+	return 120.0
+}
+
+func (g Gemini3ProImage) GetName() string {
+	return Gemini3ProImageModel
+}
+
+func (g Gemini3ProImage) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini3ProImage)
+var _ CostBreakdown = new(Gemini3ProImage)
+
+type Gemini31FlashImage struct {
+	NumberOfImages int
+	AspectRatio    AspectRatio
+	ImageFile      []GoogleImagePayload
+	PdfFiles       []GooglePdf
+	Files          []GoogleFilePayload
+}
+
+func (g Gemini31FlashImage) EstimateCost(text string) float64 {
+	// 1K image = $0.067 at $60 per 1M output tokens
+	numImages := g.NumberOfImages
+	if numImages == 0 {
+		numImages = 1
+	}
+	return float64(numImages) * 0.067
+}
+
+func (g Gemini31FlashImage) GetInputCostPer1M() float64 {
+	return 0.50
+}
+
+func (g Gemini31FlashImage) GetOutputCostPer1M() float64 {
+	return 60.0
+}
+
+func (g Gemini31FlashImage) GetName() string {
+	return Gemini31FlashImageModel
+}
+
+func (g Gemini31FlashImage) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini31FlashImage)
+var _ CostBreakdown = new(Gemini31FlashImage)

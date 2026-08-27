@@ -279,6 +279,8 @@ func (v VertexGemini3FlashPreview) GetProvider() string {
 var _ Model = new(VertexGemini3FlashPreview)
 var _ CostBreakdown = new(VertexGemini3FlashPreview)
 
+// Deprecated: gemini-3-pro-image-preview was shut down by Google on June 25, 2026. Requests to this model will fail.
+// Use VertexGemini3ProImage (gemini-3-pro-image) as a replacement.
 type VertexGemini3ProImagePreview struct {
 	NumberOfImages  int
 	AspectRatio     AspectRatio
@@ -518,3 +520,77 @@ func (v VertexGemini37Flash) GetProvider() string {
 
 var _ Model = new(VertexGemini37Flash)
 var _ CostBreakdown = new(VertexGemini37Flash)
+
+type VertexGemini3ProImage struct {
+	NumberOfImages  int
+	AspectRatio     AspectRatio
+	ImageFile       []GoogleImagePayload
+	PdfFiles        []GooglePdf
+	Files           []GoogleFilePayload
+	ThinkingLevel   ThinkingLevel
+	MediaResolution MediaResolution
+}
+
+func (v VertexGemini3ProImage) EstimateCost(text string) float64 {
+	// 1K/2K image = $0.134 at $120 per 1M output tokens
+	numImages := v.NumberOfImages
+	if numImages == 0 {
+		numImages = 1
+	}
+	return float64(numImages) * 0.134
+}
+
+func (v VertexGemini3ProImage) GetInputCostPer1M() float64 {
+	return 2.0
+}
+
+func (v VertexGemini3ProImage) GetOutputCostPer1M() float64 {
+	return 120.0
+}
+
+func (v VertexGemini3ProImage) GetName() string {
+	return "gemini-3-pro-image"
+}
+
+func (v VertexGemini3ProImage) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini3ProImage)
+var _ CostBreakdown = new(VertexGemini3ProImage)
+
+type VertexGemini31FlashImage struct {
+	NumberOfImages int
+	AspectRatio    AspectRatio
+	ImageFile      []GoogleImagePayload
+	PdfFiles       []GooglePdf
+	Files          []GoogleFilePayload
+}
+
+func (v VertexGemini31FlashImage) EstimateCost(text string) float64 {
+	// 1K image = $0.067 at $60 per 1M output tokens
+	numImages := v.NumberOfImages
+	if numImages == 0 {
+		numImages = 1
+	}
+	return float64(numImages) * 0.067
+}
+
+func (v VertexGemini31FlashImage) GetInputCostPer1M() float64 {
+	return 0.50
+}
+
+func (v VertexGemini31FlashImage) GetOutputCostPer1M() float64 {
+	return 60.0
+}
+
+func (v VertexGemini31FlashImage) GetName() string {
+	return "gemini-3.1-flash-image"
+}
+
+func (v VertexGemini31FlashImage) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini31FlashImage)
+var _ CostBreakdown = new(VertexGemini31FlashImage)

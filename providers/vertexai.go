@@ -416,12 +416,28 @@ func extractVertexModelConfig(model models.Model) vertexModelConfig {
 		config.NumberOfImages = m.NumberOfImages
 		config.AspectRatio = m.AspectRatio
 		config.IsImageModel = true
-	case models.VertexGemini3ProImagePreview:
+	case models.VertexGemini3ProImagePreview: //nolint:staticcheck // backward compatibility
 		config.ImageFile = m.ImageFile
 		config.PdfFiles = m.PdfFiles
 		config.Files = m.Files
 		config.ThinkingLevel = m.ThinkingLevel
 		config.MediaResolution = m.MediaResolution
+		config.NumberOfImages = m.NumberOfImages
+		config.AspectRatio = m.AspectRatio
+		config.IsImageModel = true
+	case models.VertexGemini3ProImage:
+		config.ImageFile = m.ImageFile
+		config.PdfFiles = m.PdfFiles
+		config.Files = m.Files
+		config.ThinkingLevel = m.ThinkingLevel
+		config.MediaResolution = m.MediaResolution
+		config.NumberOfImages = m.NumberOfImages
+		config.AspectRatio = m.AspectRatio
+		config.IsImageModel = true
+	case models.VertexGemini31FlashImage:
+		config.ImageFile = m.ImageFile
+		config.PdfFiles = m.PdfFiles
+		config.Files = m.Files
 		config.NumberOfImages = m.NumberOfImages
 		config.AspectRatio = m.AspectRatio
 		config.IsImageModel = true
