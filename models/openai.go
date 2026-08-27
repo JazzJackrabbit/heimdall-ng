@@ -121,6 +121,7 @@ func (GPT41Mini) GetProvider() string {
 
 var _ Model = new(GPT41Mini)
 
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use GPT56Luna (gpt-5.6-luna) as a replacement.
 type GPT41Nano struct {
 	// StructuredOutput represents a subset of the JSON Schema Language. Refer to openai documentation for complete and up-to-date information. An example structure could be:
 	//
@@ -161,6 +162,7 @@ func (GPT41Nano) GetProvider() string {
 
 var _ Model = new(GPT41Nano)
 
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type O3Mini struct {
 	// StructuredOutput represents a subset of the JSON Schema Language. Refer to openai documentation for complete and up-to-date information. An example structure could be:
 	//
@@ -194,6 +196,7 @@ func (o O3Mini) GetProvider() string {
 
 var _ Model = new(O3Mini)
 
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type O1 struct {
 	// StructuredOutput represents a subset of the JSON Schema Language. Refer to openai documentation for complete and up-to-date information. An example structure could be:
 	//
@@ -235,6 +238,7 @@ func (o O1) GetProvider() string {
 
 var _ Model = new(O1)
 
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type GPT4 struct {
 	// Note: GPT-4 (gpt-4-0613) does not support vision/images or PDFs
 	// This is a text-only model released before vision capabilities were added
@@ -254,6 +258,7 @@ func (g GPT4) GetProvider() string {
 
 var _ Model = new(GPT4)
 
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type GPT4Turbo struct {
 	// ImageFile enables vision for the request
 	// Note: GPT-4 Turbo supports vision but NOT direct PDF input
@@ -359,6 +364,7 @@ func (g GPT4OMini) GetProvider() string {
 
 var _ Model = new(GPT4OMini)
 
+// Scheduled for shutdown by OpenAI on December 11, 2026. Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type GPT5 struct {
 	// StructuredOutput represents a subset of the JSON Schema Language. Refer to openai documentation for complete and up-to-date information. An example structure could be:
 	//
@@ -400,6 +406,7 @@ func (g GPT5) GetProvider() string {
 
 var _ Model = new(GPT5)
 
+// Scheduled for shutdown by OpenAI on December 11, 2026. Use GPT56Terra (gpt-5.6-terra) as a replacement.
 type GPT5Mini struct {
 	// StructuredOutput represents a subset of the JSON Schema Language. Refer to openai documentation for complete and up-to-date information. An example structure could be:
 	//
@@ -441,6 +448,7 @@ func (g GPT5Mini) GetProvider() string {
 
 var _ Model = new(GPT5Mini)
 
+// Scheduled for shutdown by OpenAI on December 11, 2026. Use GPT56Luna (gpt-5.6-luna) as a replacement.
 type GPT5Nano struct {
 	// StructuredOutput represents a subset of the JSON Schema Language. Refer to openai documentation for complete and up-to-date information. An example structure could be:
 	//
@@ -855,6 +863,7 @@ func (g GPT56Luna) GetProvider() string {
 var _ Model = new(GPT56Luna)
 var _ CostBreakdown = new(GPT56Luna)
 
+// Scheduled for shutdown by OpenAI on December 11, 2026. Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type O3 struct {
 	StructuredOutput map[string]any
 	PdfFile          map[string]string
@@ -875,6 +884,7 @@ func (o O3) GetProvider() string {
 
 var _ Model = new(O3)
 
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use GPT56Terra (gpt-5.6-terra) as a replacement.
 type O4Mini struct {
 	StructuredOutput map[string]any
 	PdfFile          map[string]string
@@ -910,6 +920,7 @@ const (
 	GPTImageQualityLow    = "low"
 )
 
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use gpt-image-2 as a replacement.
 type GPTImage struct {
 	// Allows to set transparency for the background of the generated image(s).
 	// Must be one of transparent, opaque or auto (default value).

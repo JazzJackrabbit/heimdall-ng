@@ -172,6 +172,7 @@ func (v VertexGemini25FlashLite) GetProvider() string {
 var _ Model = new(VertexGemini25FlashLite)
 var _ CostBreakdown = new(VertexGemini25FlashLite)
 
+// Scheduled for shutdown by Google on October 2, 2026. Use gemini-3.1-flash-image as a replacement.
 type VertexGemini25FlashImage struct {
 	NumberOfImages int
 	AspectRatio    AspectRatio

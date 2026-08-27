@@ -296,6 +296,7 @@ const (
 
 // Gemini25FlashImage represents the Gemini 2.5 Flash image generation model
 // This model generates images conversationally within the chat interface
+// Scheduled for shutdown by Google on October 2, 2026. Use gemini-3.1-flash-image as a replacement.
 type Gemini25FlashImage struct {
 	// NumberOfImages specifies how many images to generate (1-4)
 	NumberOfImages int
