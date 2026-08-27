@@ -483,3 +483,38 @@ func (v VertexGemini36Flash) GetProvider() string {
 
 var _ Model = new(VertexGemini36Flash)
 var _ CostBreakdown = new(VertexGemini36Flash)
+
+type VertexGemini37Flash struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+// Gemini 3.7 Flash is priced at $0.75/$3.75 per 1M input/output tokens through
+// December 31, 2026. Google's published price returns to $1.50/$7.50 on January 1, 2027.
+func (v VertexGemini37Flash) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00000075
+}
+
+func (v VertexGemini37Flash) GetInputCostPer1M() float64 {
+	return 0.75
+}
+
+func (v VertexGemini37Flash) GetOutputCostPer1M() float64 {
+	return 3.75
+}
+
+func (v VertexGemini37Flash) GetName() string {
+	return "gemini-3.7-flash"
+}
+
+func (v VertexGemini37Flash) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini37Flash)
+var _ CostBreakdown = new(VertexGemini37Flash)

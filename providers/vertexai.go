@@ -86,10 +86,12 @@ func buildThinkingConfig(budget models.ThinkBudget, level models.ThinkingLevel) 
 		switch level {
 		case models.HighThinkingLevel:
 			config.ThinkingLevel = genai.ThinkingLevelHigh
+		case models.MediumThinkingLevel:
+			config.ThinkingLevel = genai.ThinkingLevelMedium
 		case models.LowThinkingLevel:
 			config.ThinkingLevel = genai.ThinkingLevelLow
 		default:
-			// For any other values (medium, minimal), convert to uppercase
+			// For any other values (minimal), convert to uppercase
 			config.ThinkingLevel = genai.ThinkingLevel(strings.ToUpper(string(level)))
 		}
 		return config
@@ -392,6 +394,14 @@ func extractVertexModelConfig(model models.Model) vertexModelConfig {
 		config.ThinkingLevel = m.ThinkingLevel
 		config.MediaResolution = m.MediaResolution
 	case models.VertexGemini36Flash:
+		config.Tools = m.Tools
+		config.StructuredOutput = m.StructuredOutput
+		config.PdfFiles = m.PdfFiles
+		config.ImageFile = m.ImageFile
+		config.Files = m.Files
+		config.ThinkingLevel = m.ThinkingLevel
+		config.MediaResolution = m.MediaResolution
+	case models.VertexGemini37Flash:
 		config.Tools = m.Tools
 		config.StructuredOutput = m.StructuredOutput
 		config.PdfFiles = m.PdfFiles

@@ -686,6 +686,7 @@ Heimdall supports various models from different providers:
 - Claude 4.5 Haiku (claude-haiku-4-5)
 
 ### Google/Gemini Models
+- Gemini 3.7 Flash (gemini-3.7-flash)
 - Gemini 3.6 Flash (gemini-3.6-flash)
 - Gemini 3.5 Flash (gemini-3.5-flash)
 - Gemini 3.5 Flash Lite (gemini-3.5-flash-lite)
@@ -700,6 +701,7 @@ Heimdall supports various models from different providers:
 
 ### VertexAI Models
 Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` model types):
+- Gemini 3.7 Flash (gemini-3.7-flash)
 - Gemini 3.6 Flash (gemini-3.6-flash)
 - Gemini 3.5 Flash (gemini-3.5-flash)
 - Gemini 3.5 Flash Lite (gemini-3.5-flash-lite)

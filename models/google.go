@@ -25,6 +25,7 @@ const (
 	Gemini35FlashModel     = "gemini-3.5-flash"
 	Gemini35FlashLiteModel = "gemini-3.5-flash-lite"
 	Gemini36FlashModel     = "gemini-3.6-flash"
+	Gemini37FlashModel     = "gemini-3.7-flash"
 )
 
 type ThinkBudget string
@@ -39,7 +40,9 @@ type ThinkingLevel string
 
 const (
 	HighThinkingLevel ThinkingLevel = "high"
-	LowThinkingLevel  ThinkingLevel = "low"
+	// MediumThinkingLevel is accepted by Gemini 3.5 Flash and later Flash models.
+	MediumThinkingLevel ThinkingLevel = "medium"
+	LowThinkingLevel    ThinkingLevel = "low"
 )
 
 type MediaResolution string
@@ -612,3 +615,38 @@ func (g Gemini36Flash) GetProvider() string {
 
 var _ Model = new(Gemini36Flash)
 var _ CostBreakdown = new(Gemini36Flash)
+
+type Gemini37Flash struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+// Gemini 3.7 Flash is priced at $0.75/$3.75 per 1M input/output tokens through
+// December 31, 2026. Google's published price returns to $1.50/$7.50 on January 1, 2027.
+func (g Gemini37Flash) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00000075
+}
+
+func (g Gemini37Flash) GetInputCostPer1M() float64 {
+	return 0.75
+}
+
+func (g Gemini37Flash) GetOutputCostPer1M() float64 {
+	return 3.75
+}
+
+func (g Gemini37Flash) GetName() string {
+	return Gemini37FlashModel
+}
+
+func (g Gemini37Flash) GetProvider() string {
+	return GoogleProvider
+}
+
+var _ Model = new(Gemini37Flash)
+var _ CostBreakdown = new(Gemini37Flash)
