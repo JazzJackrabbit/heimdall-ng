@@ -13,7 +13,11 @@ const (
 	// Deprecated: Claude 3.7 Sonnet was retired on February 19, 2026. Requests to this model will fail.
 	// Use Claude46Sonnet (claude-sonnet-4-6) as a replacement.
 	AnthropicClaude37SonnetAlias = "claude-3-7-sonnet-20250219"
-	AnthropicClaude4SonnetAlias  = "claude-sonnet-4-20250514"
+	// Deprecated: Claude Sonnet 4 was retired on June 15, 2026. Requests to this model will fail.
+	// Use Claude46Sonnet (claude-sonnet-4-6) as a replacement.
+	AnthropicClaude4SonnetAlias = "claude-sonnet-4-20250514"
+	// Deprecated: Claude Opus 4 was retired on June 15, 2026. Requests to this model will fail.
+	// Use Claude48Opus (claude-opus-4-8) as a replacement.
 	AnthropicClaude4OpusAlias    = "claude-opus-4-20250514"
 	AnthropicClaude45HaikuAlias  = "claude-haiku-4-5"
 	AnthropicClaude45SonnetAlias = "claude-sonnet-4-5-20250929"
@@ -119,6 +123,8 @@ func (c Claude37Sonnet) GetProvider() string {
 
 var _ Model = new(Claude37Sonnet)
 
+// Deprecated: Claude Sonnet 4 was retired on June 15, 2026. Requests to this model will fail.
+// Use Claude46Sonnet (claude-sonnet-4-6) as a replacement.
 type Claude4Sonnet struct {
 	ImageFile        map[AnthropicImageType]string
 	PdfFiles         []AnthropicPdf
@@ -139,6 +145,8 @@ func (c Claude4Sonnet) GetProvider() string {
 
 var _ Model = new(Claude4Sonnet)
 
+// Deprecated: Claude Opus 4 was retired on June 15, 2026. Requests to this model will fail.
+// Use Claude48Opus (claude-opus-4-8) as a replacement.
 type Claude4Opus struct {
 	ImageFile        map[AnthropicImageType]string
 	PdfFiles         []AnthropicPdf

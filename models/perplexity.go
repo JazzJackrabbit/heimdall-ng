@@ -20,6 +20,8 @@ func (s SonarReasoningPro) GetProvider() string {
 
 var _ Model = new(SonarReasoningPro)
 
+// Deprecated: sonar-reasoning was removed from the Perplexity API on December 15, 2025. Requests to this model will fail.
+// Use SonarReasoningPro (sonar-reasoning-pro) as a replacement.
 type SonarReasoning struct {
 	StructuredOutput map[string]any
 }

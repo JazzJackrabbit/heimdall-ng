@@ -125,7 +125,7 @@ func TestGrokStreamingUsageParsing(t *testing.T) {
 	res, streamed := streamAndCollect(
 		t,
 		NewGrok([]string{"test-key"}),
-		models.Grok3{},
+		models.Grok43{},
 	)
 
 	assert.Equal(t, "Hello", res.Content)

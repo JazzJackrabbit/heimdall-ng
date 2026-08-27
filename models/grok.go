@@ -3,15 +3,29 @@ package models
 const GrokProvider = "grok"
 
 const (
-	Grok2VisionAlias   = "grok-2-vision-1212"
-	Grok3Alias         = "grok-3"
-	Grok3MiniAlias     = "grok-3-mini"
-	Grok3FastAlias     = "grok-3-fast"
+	// Deprecated: grok-2-vision-1212 is no longer served by xAI. Requests to this model will fail.
+	// Use Grok43Alias (grok-4.3) as a replacement.
+	Grok2VisionAlias = "grok-2-vision-1212"
+	// Deprecated: grok-3 was retired by xAI on May 15, 2026. Requests are redirected to grok-4.3 and billed at grok-4.3 rates.
+	// Use Grok43Alias (grok-4.3) as a replacement.
+	Grok3Alias = "grok-3"
+	// Deprecated: grok-3-mini is no longer served by xAI. Requests to this model will fail.
+	// Use Grok43Alias (grok-4.3) as a replacement.
+	Grok3MiniAlias = "grok-3-mini"
+	// Deprecated: grok-3-fast is no longer served by xAI. Requests to this model will fail.
+	// Use Grok43Alias (grok-4.3) as a replacement.
+	Grok3FastAlias = "grok-3-fast"
+	// Deprecated: grok-3-mini-fast is no longer served by xAI. Requests to this model will fail.
+	// Use Grok43Alias (grok-4.3) as a replacement.
 	Grok3MiniFastAlias = "grok-3-mini-fast"
-	Grok4Alias         = "grok-4"
-	Grok4FastAlias     = "grok-4-fast"
-	Grok43Alias        = "grok-4.3"
-	Grok45Alias        = "grok-4.5"
+	// Deprecated: grok-4 was retired by xAI on May 15, 2026. Requests are redirected to grok-4.3 and billed at grok-4.3 rates.
+	// Use Grok43Alias (grok-4.3) as a replacement.
+	Grok4Alias = "grok-4"
+	// Deprecated: grok-4-fast was retired by xAI on May 15, 2026. Requests are redirected to grok-4.3 and billed at grok-4.3 rates.
+	// Use Grok43Alias (grok-4.3) as a replacement.
+	Grok4FastAlias = "grok-4-fast"
+	Grok43Alias    = "grok-4.3"
+	Grok45Alias    = "grok-4.5"
 )
 
 type GrokImagePayload struct {
@@ -19,6 +33,8 @@ type GrokImagePayload struct {
 	Detail string
 }
 
+// Deprecated: grok-2-vision-1212 is no longer served by xAI. Requests to this model will fail.
+// Use Grok43 (grok-4.3) as a replacement.
 type Grok2Vision struct {
 	ImageFile        []GrokImagePayload
 	StructuredOutput map[string]any
@@ -41,6 +57,8 @@ func (Grok2Vision) GetProvider() string {
 
 var _ Model = new(Grok2Vision)
 
+// Deprecated: grok-3 was retired by xAI on May 15, 2026. Requests are redirected to grok-4.3 and billed at grok-4.3 rates.
+// Use Grok43 (grok-4.3) as a replacement.
 type Grok3 struct {
 	ImageFile        []GrokImagePayload
 	StructuredOutput map[string]any
@@ -63,6 +81,8 @@ func (Grok3) GetProvider() string {
 
 var _ Model = new(Grok3)
 
+// Deprecated: grok-3-mini is no longer served by xAI. Requests to this model will fail.
+// Use Grok43 (grok-4.3) as a replacement.
 type Grok3Mini struct {
 	StructuredOutput map[string]any
 }
@@ -84,6 +104,8 @@ func (Grok3Mini) GetProvider() string {
 
 var _ Model = new(Grok3Mini)
 
+// Deprecated: grok-3-fast is no longer served by xAI. Requests to this model will fail.
+// Use Grok43 (grok-4.3) as a replacement.
 type Grok3Fast struct {
 	ImageFile        []GrokImagePayload
 	StructuredOutput map[string]any
@@ -106,6 +128,8 @@ func (Grok3Fast) GetProvider() string {
 
 var _ Model = new(Grok3Fast)
 
+// Deprecated: grok-3-mini-fast is no longer served by xAI. Requests to this model will fail.
+// Use Grok43 (grok-4.3) as a replacement.
 type Grok3MiniFast struct {
 	StructuredOutput map[string]any
 }
@@ -127,6 +151,8 @@ func (Grok3MiniFast) GetProvider() string {
 
 var _ Model = new(Grok3MiniFast)
 
+// Deprecated: grok-4 was retired by xAI on May 15, 2026. Requests are redirected to grok-4.3 and billed at grok-4.3 rates.
+// Use Grok43 (grok-4.3) as a replacement.
 type Grok4 struct {
 	ImageFile        []GrokImagePayload
 	StructuredOutput map[string]any
@@ -149,6 +175,8 @@ func (Grok4) GetProvider() string {
 
 var _ Model = new(Grok4)
 
+// Deprecated: grok-4-fast was retired by xAI on May 15, 2026. Requests are redirected to grok-4.3 and billed at grok-4.3 rates.
+// Use Grok43 (grok-4.3) as a replacement.
 type Grok4Fast struct {
 	ImageFile        []GrokImagePayload
 	StructuredOutput map[string]any

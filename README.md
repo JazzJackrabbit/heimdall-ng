@@ -684,8 +684,6 @@ Heimdall supports various models from different providers:
 - Claude 4.5 Opus (claude-opus-4-5-20251101)
 - Claude 4.5 Sonnet (claude-sonnet-4-5-20250929)
 - Claude 4.5 Haiku (claude-haiku-4-5)
-- Claude 4 Opus (claude-opus-4-20250514)
-- Claude 4 Sonnet (claude-sonnet-4-20250514)
 
 ### Google/Gemini Models
 - Gemini 3.6 Flash (gemini-3.6-flash)
@@ -717,17 +715,9 @@ Gemini models served through Google Cloud Vertex AI (use the `VertexGemini*` mod
 ### Grok Models
 - Grok 4.5 (grok-4.5)
 - Grok 4.3 (grok-4.3)
-- Grok 4 (grok-4)
-- Grok 4 Fast (grok-4-fast)
-- Grok 3 (grok-3)
-- Grok 3 Mini (grok-3-mini)
-- Grok 3 Fast (grok-3-fast)
-- Grok 3 Mini Fast (grok-3-mini-fast)
-- Grok 2 Vision (grok-2-vision-1212)
 
 ### Perplexity Models
 - Sonar Reasoning Pro (sonar-reasoning-pro)
-- Sonar Reasoning (sonar-reasoning)
 - Sonar Pro (sonar-pro)
 - Sonar (sonar)
 

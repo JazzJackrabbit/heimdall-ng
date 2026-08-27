@@ -135,7 +135,7 @@ func (p Perplexity) doRequest(
 	switch m := req.Model.(type) {
 	case models.SonarReasoningPro:
 		structuredOutput = m.StructuredOutput
-	case models.SonarReasoning:
+	case models.SonarReasoning: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
 	case models.SonarPro:
 		structuredOutput = m.StructuredOutput

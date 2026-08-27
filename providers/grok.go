@@ -53,19 +53,19 @@ func (g Grok) doRequest(
 
 	var structuredOutput map[string]any
 	switch m := req.Model.(type) {
-	case models.Grok2Vision:
+	case models.Grok2Vision: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
-	case models.Grok3:
+	case models.Grok3: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
-	case models.Grok3Mini:
+	case models.Grok3Mini: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
-	case models.Grok3Fast:
+	case models.Grok3Fast: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
-	case models.Grok3MiniFast:
+	case models.Grok3MiniFast: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
-	case models.Grok4:
+	case models.Grok4: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
-	case models.Grok4Fast:
+	case models.Grok4Fast: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
 	case models.Grok43:
 		structuredOutput = m.StructuredOutput
@@ -405,15 +405,15 @@ func prepareGrokRequest(
 	history []request.Message,
 ) (openAIRequest, error) {
 	switch m := requestedModel.(type) {
-	case *models.Grok2Vision:
+	case *models.Grok2Vision: //nolint:staticcheck // backward compatibility
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
-	case *models.Grok3:
+	case *models.Grok3: //nolint:staticcheck // backward compatibility
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
-	case *models.Grok3Fast:
+	case *models.Grok3Fast: //nolint:staticcheck // backward compatibility
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
-	case *models.Grok4:
+	case *models.Grok4: //nolint:staticcheck // backward compatibility
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
-	case *models.Grok4Fast:
+	case *models.Grok4Fast: //nolint:staticcheck // backward compatibility
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)
 	case *models.Grok43:
 		return prepareGrokVisionRequest(request, m.ImageFile, systemInst, userMsg, history)

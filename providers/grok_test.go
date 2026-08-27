@@ -28,7 +28,7 @@ func TestGrokModelsWithCompletion(t *testing.T) {
 	grokProvider := providers.NewGrok([]string{apiKey})
 
 	req := request.Completion{
-		Model:         models.Grok3Mini{},
+		Model:         models.Grok43{},
 		SystemMessage: "you are a helpful assistant.",
 		UserMessage:   "Say hello in one sentence.",
 		Temperature:   1,
@@ -62,7 +62,7 @@ func TestGrokModelsWithStreaming(t *testing.T) {
 	grokProvider := providers.NewGrok([]string{apiKey})
 
 	req := request.Completion{
-		Model:         models.Grok3Mini{},
+		Model:         models.Grok43{},
 		SystemMessage: "you are a helpful assistant.",
 		UserMessage:   "Say hello in one sentence.",
 		Temperature:   1,
@@ -96,7 +96,7 @@ func TestGrokErrorHandling(t *testing.T) {
 	grokProvider := providers.NewGrok([]string{"invalid-key"})
 
 	req := request.Completion{
-		Model:         models.Grok3Mini{},
+		Model:         models.Grok43{},
 		SystemMessage: "you are a helpful assistant.",
 		UserMessage:   "Hello",
 		Temperature:   1,

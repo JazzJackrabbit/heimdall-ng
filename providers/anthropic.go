@@ -184,7 +184,7 @@ func (a Anthropic) doRequest(
 			return response.Completion{}, 0, err
 		}
 		messages = append(messages, msgs...)
-	case models.AnthropicClaude4SonnetAlias:
+	case models.AnthropicClaude4SonnetAlias: //nolint:staticcheck // backward compatibility
 		msgs, err := prepareClaude4Sonnet(
 			req.Model,
 			req.UserMessage,
@@ -193,7 +193,7 @@ func (a Anthropic) doRequest(
 			return response.Completion{}, 0, err
 		}
 		messages = append(messages, msgs...)
-	case models.AnthropicClaude4OpusAlias:
+	case models.AnthropicClaude4OpusAlias: //nolint:staticcheck // backward compatibility
 		msgs, err := prepareClaude4Opus(
 			req.Model,
 			req.UserMessage,
@@ -308,9 +308,9 @@ func (a Anthropic) doRequest(
 		structuredOutput = m.StructuredOutput
 	case models.Claude37Sonnet:
 		structuredOutput = m.StructuredOutput
-	case models.Claude4Sonnet:
+	case models.Claude4Sonnet: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
-	case models.Claude4Opus:
+	case models.Claude4Opus: //nolint:staticcheck // backward compatibility
 		structuredOutput = m.StructuredOutput
 	case models.Claude45Haiku:
 		structuredOutput = m.StructuredOutput
@@ -815,7 +815,7 @@ func prepareClaude4Sonnet(
 	requestedModel models.Model,
 	userMsg string,
 ) ([]anthropicMsg, error) {
-	model, ok := requestedModel.(models.Claude4Sonnet)
+	model, ok := requestedModel.(models.Claude4Sonnet) //nolint:staticcheck // backward compatibility
 	if !ok {
 		return nil, errors.New(
 			"internal error; model type assertion to models.Claude4Sonnet failed",
@@ -848,7 +848,7 @@ func prepareClaude4Opus(
 	requestedModel models.Model,
 	userMsg string,
 ) ([]anthropicMsg, error) {
-	model, ok := requestedModel.(models.Claude4Opus)
+	model, ok := requestedModel.(models.Claude4Opus) //nolint:staticcheck // backward compatibility
 	if !ok {
 		return nil, errors.New(
 			"internal error; model type assertion to models.Claude4Opus failed",
