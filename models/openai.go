@@ -905,7 +905,10 @@ func (o O4Mini) GetProvider() string {
 
 var _ Model = new(O4Mini)
 
-const ImageModelAlias = "gpt-image-1"
+const (
+	ImageModelAlias  = "gpt-image-1"
+	ImageModel2Alias = "gpt-image-2"
+)
 
 // The sizes gpt-image-1 accepts. The 1792x1024 / 1024x1792 pair that used to
 // sit here are DALL·E 3 sizes; gpt-image-1 rejects them outright.
@@ -920,7 +923,7 @@ const (
 	GPTImageQualityLow    = "low"
 )
 
-// Scheduled for shutdown by OpenAI on October 23, 2026. Use gpt-image-2 as a replacement.
+// Scheduled for shutdown by OpenAI on October 23, 2026. Use GPTImage2 (gpt-image-2) as a replacement.
 type GPTImage struct {
 	// Allows to set transparency for the background of the generated image(s).
 	// Must be one of transparent, opaque or auto (default value).
@@ -978,3 +981,25 @@ func (d GPTImage) GetProvider() string {
 }
 
 var _ Model = new(GPTImage)
+
+// GPTImage2 targets gpt-image-2, the successor to gpt-image-1, and takes the
+// same parameters. Size additionally accepts any WIDTHxHEIGHT string with both
+// edges divisible by 16, an aspect ratio between 1:3 and 3:1 and at most
+// 3840x2160; the GPTImageSize constants remain valid.
+type GPTImage2 GPTImage
+
+func (d GPTImage2) EstimateCost(text string) float64 {
+	// Text input tokens cost $5.00/1M, image output tokens cost $30.00/1M.
+	// Use text input cost as a rough estimate for prompt size.
+	return (float64(len(text)) / 4) * 0.000005
+}
+
+func (d GPTImage2) GetName() string {
+	return ImageModel2Alias
+}
+
+func (d GPTImage2) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPTImage2)

@@ -344,7 +344,7 @@ func (oa Openai) CompleteResponse(
 	client http.Client,
 	requestLog *response.Logging,
 ) (response.Completion, error) {
-	if _, ok := req.Model.(*models.GPTImage); ok {
+	if _, ok := openAIImageParamsOf(req.Model); ok {
 		reqLog := requestLog
 		if reqLog == nil {
 			if req.Tags == nil {
@@ -521,7 +521,7 @@ func (oa Openai) StreamResponse(
 	chunkHandler func(chunk string) error,
 	requestLog *response.Logging,
 ) (response.Completion, error) {
-	if _, ok := req.Model.(*models.GPTImage); ok {
+	if _, ok := openAIImageParamsOf(req.Model); ok {
 		logCtx := requestLog
 		if logCtx == nil {
 			logCtx = &response.Logging{
@@ -601,16 +601,36 @@ func (oa Openai) StreamResponse(
 	return oa.tryWithBackup(ctx, req, client, chunkHandler, reqLog)
 }
 
+// openAIImageParams carries a gpt-image model's request fields together with
+// its model id, so one code path serves every gpt-image version.
+type openAIImageParams struct {
+	models.GPTImage
+	name string
+}
+
+// openAIImageParamsOf reports whether m is a gpt-image model and, if so,
+// returns the fields that shape its request.
+func openAIImageParamsOf(m models.Model) (*openAIImageParams, bool) {
+	switch im := m.(type) {
+	case *models.GPTImage:
+		return &openAIImageParams{GPTImage: *im, name: im.GetName()}, true
+	case *models.GPTImage2:
+		return &openAIImageParams{GPTImage: models.GPTImage(*im), name: im.GetName()}, true
+	default:
+		return nil, false
+	}
+}
+
 func (oa Openai) callImageGenerationAPI(
 	ctx context.Context,
 	req request.Completion,
 	client http.Client,
 	key string,
 ) (response.Completion, int, error) {
-	gptImageModel, ok := req.Model.(*models.GPTImage)
+	gptImageModel, ok := openAIImageParamsOf(req.Model)
 	if !ok {
 		return response.Completion{}, 0, errors.New(
-			"internal error: model is not GPTImage",
+			"internal error: model is not a gpt-image model",
 		)
 	}
 
@@ -712,13 +732,13 @@ func (oa Openai) callImageGenerationAPI(
 // and bounds how much a referenced URL can stream into memory.
 const maxImageEditBytes = 50 << 20
 
-// imageRequestFields collects the gpt-image-1 parameters shared by the
+// imageRequestFields collects the gpt-image parameters shared by the
 // generation and edit endpoints, in a stable order so both transports send the
 // same values. moderation is generation-only — the edit endpoint does not
 // document it — so it is opt-in via includeModeration.
-func imageRequestFields(m *models.GPTImage, prompt string, includeModeration bool) [][2]string {
+func imageRequestFields(m *openAIImageParams, prompt string, includeModeration bool) [][2]string {
 	fields := [][2]string{
-		{"model", m.GetName()},
+		{"model", m.name},
 		{"prompt", prompt},
 		{"n", "1"},
 	}
@@ -754,7 +774,7 @@ func imageRequestFields(m *models.GPTImage, prompt string, includeModeration boo
 // newImageGenerationRequest builds a prompt-only call to /images/generations.
 func newImageGenerationRequest(
 	ctx context.Context,
-	m *models.GPTImage,
+	m *openAIImageParams,
 	prompt string,
 ) (*http.Request, []byte, error) {
 	payload := map[string]any{}
@@ -785,7 +805,7 @@ func newImageGenerationRequest(
 func newImageEditRequest(
 	ctx context.Context,
 	client http.Client,
-	m *models.GPTImage,
+	m *openAIImageParams,
 	prompt string,
 ) (*http.Request, []byte, error) {
 	var body bytes.Buffer

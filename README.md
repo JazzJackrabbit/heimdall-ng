@@ -671,6 +671,7 @@ Heimdall supports various models from different providers:
 - O3 Mini (o3-mini-2025-01-31)
 - O3 (o3)
 - O4 Mini (o4-mini)
+- GPT Image 2 (gpt-image-2), same parameters as gpt-image-1 plus arbitrary sizes up to 3840x2160
 - GPT Image (gpt-image-1) — pass `ImageFile` to edit reference images instead of generating from the prompt alone
 
 ### Anthropic Models

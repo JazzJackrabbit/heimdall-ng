@@ -86,6 +86,7 @@ func GetAll() []string {
 		O3Alias,
 		O4MiniAlias,
 		ImageModelAlias,
+		ImageModel2Alias,
 
 		"sonar-reasoning-pro",
 		"sonar-reasoning",

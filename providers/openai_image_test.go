@@ -276,3 +276,43 @@ func TestGPTImageRejectsUnsupportedURLScheme(t *testing.T) {
 	require.Error(t, err, "a file:// reference should be refused")
 	assert.Contains(t, err.Error(), "unsupported image URL scheme")
 }
+
+// gpt-image-2 shares the gpt-image-1 request shape on both endpoints and is
+// addressed by its own model id.
+func TestGPTImage2UsesItsModelID(t *testing.T) {
+	t.Parallel()
+
+	transport := &imageCaptureTransport{}
+	client := http.Client{Transport: transport}
+	openai := providers.NewOpenAI([]string{"test-key"})
+
+	res, err := openai.CompleteResponse(context.Background(), request.Completion{
+		Model:       &models.GPTImage2{Size: "1536x864"},
+		UserMessage: "A wide banner",
+		Temperature: 1,
+	}, client, nil)
+	require.NoError(t, err, "CompleteResponse returned an unexpected error")
+	assert.Equal(t, models.ImageModel2Alias, res.Model, "response model")
+	assert.Equal(t, "/v1/images/generations", transport.path, "a prompt-only request should use the generation endpoint")
+
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal(transport.body, &payload), "request body should be JSON")
+	assert.Equal(t, models.ImageModel2Alias, payload["model"], "model field")
+	assert.Equal(t, "1536x864", payload["size"], "gpt-image-2 accepts arbitrary sizes")
+
+	editTransport := &imageCaptureTransport{}
+	editClient := http.Client{Transport: editTransport}
+	_, err = openai.CompleteResponse(context.Background(), request.Completion{
+		Model: &models.GPTImage2{
+			ImageFile: []models.OpenaiImagePayload{{Url: "data:image/png;base64,aGVsbG8="}},
+		},
+		UserMessage: "Recolour this",
+		Temperature: 1,
+	}, editClient, nil)
+	require.NoError(t, err, "edit CompleteResponse returned an unexpected error")
+	assert.Equal(t, "/v1/images/edits", editTransport.path, "reference images must route to the edit endpoint")
+
+	fields, files := parseMultipart(t, editTransport.contentType, editTransport.body)
+	assert.Equal(t, models.ImageModel2Alias, fields["model"], "model field")
+	require.Len(t, files, 1, "the reference image should be uploaded")
+}
