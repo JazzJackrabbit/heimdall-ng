@@ -407,15 +407,15 @@ type Claude5Sonnet struct {
 }
 
 func (c Claude5Sonnet) EstimateCost(text string) float64 {
-	return (float64(len(text)) / 4) * 0.000003
+	return (float64(len(text)) / 4) * 0.000002
 }
 
 func (c Claude5Sonnet) GetInputCostPer1M() float64 {
-	return 3.0
+	return 2.0
 }
 
 func (c Claude5Sonnet) GetOutputCostPer1M() float64 {
-	return 15.0
+	return 10.0
 }
 
 func (c Claude5Sonnet) GetName() string {

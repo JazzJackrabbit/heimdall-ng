@@ -587,16 +587,18 @@ type Gemini36Flash struct {
 	MediaResolution  MediaResolution
 }
 
+// Gemini 3.6 Flash is priced at $0.75/$3.75 per 1M input/output tokens through
+// December 31, 2026. Google's published price returns to $1.50/$7.50 on January 1, 2027.
 func (g Gemini36Flash) EstimateCost(text string) float64 {
-	return (float64(len(text)) / 4) * 0.0000015
+	return (float64(len(text)) / 4) * 0.00000075
 }
 
 func (g Gemini36Flash) GetInputCostPer1M() float64 {
-	return 1.50
+	return 0.75
 }
 
 func (g Gemini36Flash) GetOutputCostPer1M() float64 {
-	return 7.50
+	return 3.75
 }
 
 func (g Gemini36Flash) GetName() string {

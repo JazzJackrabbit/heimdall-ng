@@ -775,15 +775,15 @@ type GPT56Sol struct {
 }
 
 func (g GPT56Sol) EstimateCost(text string) float64 {
-	return (float64(len(text)) / 4) * 0.000005
+	return (float64(len(text)) / 4) * 0.000004
 }
 
 func (g GPT56Sol) GetInputCostPer1M() float64 {
-	return 5.0
+	return 4.0
 }
 
 func (g GPT56Sol) GetOutputCostPer1M() float64 {
-	return 30.0
+	return 20.0
 }
 
 func (g GPT56Sol) GetName() string {
@@ -804,15 +804,15 @@ type GPT56Terra struct {
 }
 
 func (g GPT56Terra) EstimateCost(text string) float64 {
-	return (float64(len(text)) / 4) * 0.0000025
+	return (float64(len(text)) / 4) * 0.000002
 }
 
 func (g GPT56Terra) GetInputCostPer1M() float64 {
-	return 2.5
+	return 2.0
 }
 
 func (g GPT56Terra) GetOutputCostPer1M() float64 {
-	return 15.0
+	return 12.0
 }
 
 func (g GPT56Terra) GetName() string {
@@ -833,15 +833,15 @@ type GPT56Luna struct {
 }
 
 func (g GPT56Luna) EstimateCost(text string) float64 {
-	return (float64(len(text)) / 4) * 0.000001
+	return (float64(len(text)) / 4) * 0.0000002
 }
 
 func (g GPT56Luna) GetInputCostPer1M() float64 {
-	return 1.0
+	return 0.20
 }
 
 func (g GPT56Luna) GetOutputCostPer1M() float64 {
-	return 6.0
+	return 1.20
 }
 
 func (g GPT56Luna) GetName() string {
