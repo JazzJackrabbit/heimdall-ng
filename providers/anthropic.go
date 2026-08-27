@@ -299,6 +299,9 @@ func (a Anthropic) doRequest(
 	// Extract structured output and model-specific options
 	var structuredOutput map[string]any
 	var betas []string
+	// Claude 4.7 and later return 400 when temperature or top_p is set to a
+	// non-default value, so those fields are dropped for them.
+	var omitSampling bool
 	switch m := req.Model.(type) {
 	case models.Claude3Opus:
 		structuredOutput = m.StructuredOutput
@@ -336,26 +339,31 @@ func (a Anthropic) doRequest(
 		}
 	case models.Claude47Opus:
 		structuredOutput = m.StructuredOutput
+		omitSampling = true
 		if m.MaxOutputTokens > 0 {
 			maxTokens = m.MaxOutputTokens
 		}
 	case models.Claude48Opus:
 		structuredOutput = m.StructuredOutput
+		omitSampling = true
 		if m.MaxOutputTokens > 0 {
 			maxTokens = m.MaxOutputTokens
 		}
 	case models.Claude5Opus:
 		structuredOutput = m.StructuredOutput
+		omitSampling = true
 		if m.MaxOutputTokens > 0 {
 			maxTokens = m.MaxOutputTokens
 		}
 	case models.Claude5Sonnet:
 		structuredOutput = m.StructuredOutput
+		omitSampling = true
 		if m.MaxOutputTokens > 0 {
 			maxTokens = m.MaxOutputTokens
 		}
 	case models.ClaudeFable5:
 		structuredOutput = m.StructuredOutput
+		omitSampling = true
 		if m.MaxOutputTokens > 0 {
 			maxTokens = m.MaxOutputTokens
 		}
@@ -365,14 +373,19 @@ func (a Anthropic) doRequest(
 		betas = append(betas, "structured-outputs-2025-11-13")
 	}
 
+	temperature, topP := req.Temperature, req.TopP
+	if omitSampling {
+		temperature, topP = 0, 0
+	}
+
 	apiReq := anthropicRequest{
 		System:      req.SystemMessage,
 		Model:       modelName,
 		Messages:    messages,
 		Stream:      true,
 		MaxTokens:   maxTokens,
-		Temperature: req.Temperature,
-		TopP:        req.TopP,
+		Temperature: temperature,
+		TopP:        topP,
 	}
 
 	var body []byte

@@ -439,7 +439,7 @@ var _ CostBreakdown = new(Claude5Sonnet)
 
 // ClaudeFable5 requires the organization to have 30-day data retention;
 // requests from zero-data-retention organizations are rejected by Anthropic.
-// It does not accept temperature or top_p; leave those request fields unset.
+// It does not accept temperature or top_p; the provider drops those request fields.
 type ClaudeFable5 struct {
 	ImageFile        map[AnthropicImageType]string
 	PdfFiles         []AnthropicPdf
