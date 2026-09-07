@@ -1,6 +1,6 @@
 # Heimdall
 
-Heimdall is a Go library for making LLM (Large Language Model) requests more consistent by providing model fallbacks and API key rotation. It acts as a router between your application and various LLM providers. This is a maintained fork of [flyx-ai/heimdall](https://github.com/flyx-ai/heimdall).
+Heimdall is a Go library for making LLM requests more consistent by providing model fallbacks and API key rotation. It acts as a router between your application and various LLM providers. This is a maintained fork of [flyx-ai/heimdall](https://github.com/flyx-ai/heimdall).
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/JazzJackrabbit/heimdall-ng.svg)](https://pkg.go.dev/github.com/JazzJackrabbit/heimdall-ng)
 [![Release](https://img.shields.io/github/v/release/JazzJackrabbit/heimdall-ng)](https://github.com/JazzJackrabbit/heimdall-ng/releases)
