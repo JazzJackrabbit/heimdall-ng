@@ -986,6 +986,17 @@ func prepareModelRequest(
 		return prepareRequest(request, m.StructuredOutput, m.PdfFile, m.ImageFile, systemInst, userMsg, history)
 	case models.GPT56Luna:
 		return prepareRequest(request, m.StructuredOutput, m.PdfFile, m.ImageFile, systemInst, userMsg, history)
+	// GPT-6 models reject temperature and top_p at the reasoning effort heimdall
+	// uses, so those fields are dropped for them.
+	case models.GPT6Astra:
+		request.Temperature, request.TopP = 0, 0
+		return prepareRequest(request, m.StructuredOutput, m.PdfFile, m.ImageFile, systemInst, userMsg, history)
+	case models.GPT6Sol:
+		request.Temperature, request.TopP = 0, 0
+		return prepareRequest(request, m.StructuredOutput, m.PdfFile, m.ImageFile, systemInst, userMsg, history)
+	case models.GPT6Luna:
+		request.Temperature, request.TopP = 0, 0
+		return prepareRequest(request, m.StructuredOutput, m.PdfFile, m.ImageFile, systemInst, userMsg, history)
 	case models.O3:
 		return prepareRequest(request, m.StructuredOutput, m.PdfFile, m.ImageFile, systemInst, userMsg, history)
 	case models.O4Mini:

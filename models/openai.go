@@ -29,6 +29,9 @@ const (
 	GPT56SolAlias       = "gpt-5.6-sol"
 	GPT56TerraAlias     = "gpt-5.6-terra"
 	GPT56LunaAlias      = "gpt-5.6-luna"
+	GPT6AstraAlias      = "gpt-6-astra"
+	GPT6SolAlias        = "gpt-6-sol"
+	GPT6LunaAlias       = "gpt-6-luna"
 	O3Alias             = "o3"
 	O4MiniAlias         = "o4-mini"
 )
@@ -862,6 +865,101 @@ func (g GPT56Luna) GetProvider() string {
 
 var _ Model = new(GPT56Luna)
 var _ CostBreakdown = new(GPT56Luna)
+
+// GPT6Astra does not accept temperature or top_p; the provider drops those request fields.
+type GPT6Astra struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+// Prompts over 272K input tokens are billed at a higher rate.
+func (g GPT6Astra) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00001
+}
+
+func (g GPT6Astra) GetInputCostPer1M() float64 {
+	return 10.0
+}
+
+func (g GPT6Astra) GetOutputCostPer1M() float64 {
+	return 50.0
+}
+
+func (g GPT6Astra) GetName() string {
+	return GPT6AstraAlias
+}
+
+func (g GPT6Astra) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT6Astra)
+var _ CostBreakdown = new(GPT6Astra)
+
+// GPT6Sol accepts temperature and top_p only at reasoning effort none, which heimdall does
+// not set, so the provider drops those request fields.
+type GPT6Sol struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+// Prompts over 272K input tokens are billed at a higher rate.
+func (g GPT6Sol) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000002
+}
+
+func (g GPT6Sol) GetInputCostPer1M() float64 {
+	return 2.0
+}
+
+func (g GPT6Sol) GetOutputCostPer1M() float64 {
+	return 10.0
+}
+
+func (g GPT6Sol) GetName() string {
+	return GPT6SolAlias
+}
+
+func (g GPT6Sol) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT6Sol)
+var _ CostBreakdown = new(GPT6Sol)
+
+// GPT6Luna accepts temperature and top_p only at reasoning effort none, which heimdall does
+// not set, so the provider drops those request fields.
+type GPT6Luna struct {
+	StructuredOutput map[string]any
+	PdfFile          map[string]string
+	ImageFile        []OpenaiImagePayload
+}
+
+// Prompts over 272K input tokens are billed at a higher rate.
+func (g GPT6Luna) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.0000001
+}
+
+func (g GPT6Luna) GetInputCostPer1M() float64 {
+	return 0.10
+}
+
+func (g GPT6Luna) GetOutputCostPer1M() float64 {
+	return 0.50
+}
+
+func (g GPT6Luna) GetName() string {
+	return GPT6LunaAlias
+}
+
+func (g GPT6Luna) GetProvider() string {
+	return OpenaiProvider
+}
+
+var _ Model = new(GPT6Luna)
+var _ CostBreakdown = new(GPT6Luna)
 
 // Scheduled for shutdown by OpenAI on December 11, 2026. Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type O3 struct {
