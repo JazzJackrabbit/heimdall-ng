@@ -1,36 +1,20 @@
 # Heimdall
 
-Heimdall is a Go library that routes LLM requests between your application and several providers. It adds model fallbacks and API key failover on top of each provider's API. This is a maintained fork of [flyx-ai/heimdall](https://github.com/flyx-ai/heimdall).
-
 [![Go Reference](https://pkg.go.dev/badge/github.com/JazzJackrabbit/heimdall-ng.svg)](https://pkg.go.dev/github.com/JazzJackrabbit/heimdall-ng)
 [![Release](https://img.shields.io/github/v/release/JazzJackrabbit/heimdall-ng)](https://github.com/JazzJackrabbit/heimdall-ng/releases)
+[![Build](https://github.com/JazzJackrabbit/heimdall-ng/actions/workflows/build.yml/badge.svg)](https://github.com/JazzJackrabbit/heimdall-ng/actions/workflows/build.yml)
 [![License: BSD-3](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
 
-## Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Provider Setup](#provider-setup)
-- [Multi-turn Conversations](#multi-turn-conversations)
-- [Working with PDF Files](#working-with-pdf-files)
-- [Streaming Responses](#streaming-responses)
-- [Structured Output](#structured-output)
-- [Advanced Router Configuration](#advanced-router-configuration)
-- [Working with Images](#working-with-images)
-- [Error Handling](#error-handling)
-- [Supported Models](#supported-models)
-- [License](#license)
+Heimdall is a Go library that sends LLM requests through one interface to OpenAI, Anthropic, Google Gemini, Vertex AI, xAI Grok, Perplexity and OpenRouter. A request names a primary model and a list of fallbacks. The router tries each model in order, and each provider tries its API keys in order, until one succeeds.
 
 ## Features
 
-- One interface for OpenAI, Anthropic, Google Gemini, Vertex AI, Grok, OpenRouter and Perplexity
-- Fallback models that are tried in order when the primary model fails
-- Multiple API keys per provider, tried in order until one succeeds
-- Streaming and non-streaming completions
+- One request type for every provider, with streaming and non-streaming calls
+- Fallback models across providers and API key failover within a provider
 - PDF, image and file inputs
-- JSON structured output using each provider's schema format
-- A request log on every response, with the attempts and events of that request
+- JSON structured output
+- Token usage and a per-request event log on every response
+- Typed model definitions with per-model options and pricing
 
 ## Installation
 
@@ -38,82 +22,64 @@ Heimdall is a Go library that routes LLM requests between your application and s
 go get github.com/JazzJackrabbit/heimdall-ng
 ```
 
-## Quick Start
+Requires Go 1.26 or later.
 
-### Basic Usage
-
-A minimal request through the router with OpenAI:
+## Quick start
 
 ```go
 package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
-	"github.com/JazzJackrabbit/heimdall-ng"
+	heimdall "github.com/JazzJackrabbit/heimdall-ng"
 	"github.com/JazzJackrabbit/heimdall-ng/models"
 	"github.com/JazzJackrabbit/heimdall-ng/providers"
 	"github.com/JazzJackrabbit/heimdall-ng/request"
 )
 
 func main() {
-	ctx := context.Background()
+	router := heimdall.New(60*time.Second, []heimdall.LLMProvider{
+		providers.NewOpenAI([]string{os.Getenv("OPENAI_API_KEY")}),
+		providers.NewAnthropic([]string{os.Getenv("ANTHROPIC_API_KEY")}),
+		providers.NewGoogle([]string{os.Getenv("GOOGLE_API_KEY")}),
+	})
 
-	// Create a provider with your API key
-	openAIAPIKey := os.Getenv("OPENAI_API_KEY")
-	openAIProvider := providers.NewOpenAI([]string{openAIAPIKey})
-
-	// Setup the router with a timeout and the provider
-	timeout := 30 * time.Second
-	router := heimdall.New(timeout, []heimdall.LLMProvider{openAIProvider})
-
-	// Create a completion request
-	req := request.Completion{
-		Model: models.GPT4O{},
-		SystemMessage: "You are a helpful assistant.",
-		UserMessage:   "What's the capital of France?",
-		Fallback: []models.Model{
-			models.GPT4OMini{},
-		},
-		Temperature: 0.7,
-		TopP:        1.0,
-		Tags: map[string]string{
-			"env":  "production",
-			"type": "geography",
-		},
-	}
-
-	// Get a completion
-	response, err := router.Complete(ctx, req)
+	res, err := router.Complete(context.Background(), request.Completion{
+		Model:         models.GPT6Sol{},
+		Fallback:      []models.Model{models.Claude5Sonnet{}, models.Gemini38Flash{}},
+		SystemMessage: "You are a concise assistant.",
+		UserMessage:   "Explain what a vector database is in two sentences.",
+	})
 	if err != nil {
 		panic(err)
 	}
 
-	// Use the response
-	println(response.Content)
+	fmt.Println(res.Content)
+	fmt.Printf("model: %s, tokens: %d\n", res.Model, res.Usage.TotalTokens)
 }
 ```
 
-The router (`router.Complete` and `router.Stream`) is the main entry point and handles model fallbacks. Each provider also exposes `CompleteResponse` and `StreamResponse` directly. Several examples below call the provider directly to stay short. Any of them can go through the router instead.
+## Usage
 
-## Provider Setup
+### Providers
 
-Every provider except Vertex AI takes a list of API keys. Keys are tried in order until one succeeds.
+Each provider is created with a list of API keys, which it tries in order. Register the providers you need with `heimdall.New`. A model is routed to the provider it belongs to, and models whose provider is not registered are skipped. The timeout passed to `heimdall.New` applies to each HTTP request, including the whole streamed response.
 
-```go
-openAIProvider := providers.NewOpenAI([]string{"key1", "key2"})
-anthropicProvider := providers.NewAnthropic([]string{"your-api-key"})
-googleProvider := providers.NewGoogle([]string{"your-api-key"})
-grokProvider := providers.NewGrok([]string{"your-api-key"})
-openRouterProvider := providers.NewOpenRouter([]string{"your-api-key"})
-perplexityProvider := providers.NewPerplexity([]string{"your-api-key"})
-```
+| Provider | Constructor | Model types |
+| --- | --- | --- |
+| OpenAI | `providers.NewOpenAI(keys)` | `models.GPT*` |
+| Anthropic | `providers.NewAnthropic(keys)` | `models.Claude*` |
+| Google Gemini | `providers.NewGoogle(keys)` | `models.Gemini*` |
+| Vertex AI | `providers.NewVertexAI(ctx, projectID, location, credentialsJSON)` | `models.VertexGemini*` |
+| xAI Grok | `providers.NewGrok(keys)` | `models.Grok*` |
+| Perplexity | `providers.NewPerplexity(keys)` | `models.Sonar*` |
+| OpenRouter | `providers.NewOpenRouter(keys)` | `models.OpenRouterModel{ModelName: "..."}` |
 
-### Vertex AI
-
-Vertex AI takes a Google Cloud project ID, a location and service account credentials in JSON form:
+Vertex AI authenticates with a service account key instead of API keys:
 
 ```go
 credentials, err := os.ReadFile("service-account.json")
@@ -121,586 +87,228 @@ if err != nil {
 	panic(err)
 }
 
-vertexAIProvider, err := providers.NewVertexAI(ctx, "my-project-id", "global", credentials)
+vertex, err := providers.NewVertexAI(ctx, "my-project-id", "global", credentials)
 if err != nil {
 	panic(err)
 }
 ```
 
-### Google context caching
+### Model options
 
-The Google provider manages Gemini API cached content with `CacheContent`, `ListCachedContents` and `UpdateCachedContentTTL`. `CacheContent` stores files and a system instruction for a model and returns the cache ID.
+Options specific to a model are fields on its type, for example `MaxOutputTokens` on Claude 4.6 and later models (4096 when unset) and `ThinkingLevel` on Gemini 3 text models. The [models package reference](https://pkg.go.dev/github.com/JazzJackrabbit/heimdall-ng/models) lists the fields of each type.
 
 ```go
-func main() {
-	ctx := context.Background()
-
-	g := providers.NewGoogle([]string{os.Getenv("GOOGLE_API_KEY")})
-
-	key, err := g.CacheContent(
-		ctx,
-		models.Gemini38Flash{}.GetName(),
-		providers.CacheContentPayload{
-			// Map of MIME type to file URI (for example a Cloud Storage URI)
-			FileData: map[string]string{
-				"application/pdf": "gs://my-bucket/contract.pdf",
-			},
-		},
-		"You are a contract analysis assistant.",
-		10*time.Minute,
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("cached content id:", key)
-}
+model := models.Claude5Sonnet{MaxOutputTokens: 16000}
 ```
 
-## Multi-turn Conversations
+`Temperature` and `TopP` on the request are sent to Anthropic models that accept them. Other providers ignore them.
 
-Pass prior turns through the `History` field to give the model conversational context. Each `request.Message` has a `Role` (`"user"` or `"assistant"`) and `Content`:
+Model types that implement `models.CostBreakdown` report their input and output prices per million tokens.
+
+### Streaming
+
+`router.Stream` takes the same request and calls the handler with each chunk of text as it arrives. It returns the full response when the stream ends. If a stream fails partway, the next key or model starts a new stream, and the handler has already received the chunks from the failed attempt.
+
+```go
+res, err := router.Stream(ctx, req, func(chunk string) error {
+	fmt.Print(chunk)
+	return nil
+})
+```
+
+### Conversation history
+
+Earlier turns go in `History`. The new message goes in `UserMessage`.
 
 ```go
 req := request.Completion{
-	Model:         models.GPT4O{},
-	SystemMessage: "You are a helpful travel assistant.",
+	Model:         models.Claude5Sonnet{},
+	SystemMessage: "You are a travel assistant.",
 	History: []request.Message{
 		{Role: "user", Content: "I'm planning a trip to Japan."},
-		{Role: "assistant", Content: "Great! When are you planning to go?"},
+		{Role: "assistant", Content: "When are you planning to go?"},
 	},
-	UserMessage: "Sometime in April. What should I know?",
+	UserMessage: "In April. What should I know?",
 }
+```
 
-response, err := router.Complete(ctx, req)
+### Files and images
+
+Files are set on the model value, since each provider accepts them in a different form. Content is base64 encoded.
+
+```go
+pdf, err := os.ReadFile("report.pdf")
 if err != nil {
 	panic(err)
 }
+encoded := base64.StdEncoding.EncodeToString(pdf)
 
-fmt.Println(response.Content)
+req := request.Completion{
+	Model: models.Claude5Sonnet{
+		PdfFiles: []models.AnthropicPdf{models.AnthropicPdf(encoded)},
+	},
+	Fallback: []models.Model{
+		models.Gemini38Flash{
+			PdfFiles: []models.GooglePdf{models.GooglePdf(encoded)},
+		},
+		models.GPT6Sol{
+			PdfFile: map[string]string{"report.pdf": "data:application/pdf;base64," + encoded},
+		},
+	},
+	UserMessage: "Summarize this report.",
+}
 ```
 
-## Working with PDF Files
+Images use the `ImageFile` field of the same models. OpenAI models take a data URL, Gemini models take raw base64 with its MIME type and Anthropic models take a map of media type to base64.
 
-### OpenAI with PDF Input
+### Structured output
+
+Set a JSON schema on the model's `StructuredOutput` field. OpenAI models take a named schema:
 
 ```go
-func main() {
-	ctx := context.Background()
-
-	openAIAPIKey := os.Getenv("OPENAI_API_KEY")
-
-	// Read and encode the PDF file
-	fileBytes, err := os.ReadFile("document.pdf")
-	if err != nil {
-		panic(err)
-	}
-
-	encodedString := base64.StdEncoding.EncodeToString(fileBytes)
-	dataURL := "data:application/pdf;base64," + encodedString
-
-	openAIProvider := providers.NewOpenAI([]string{openAIAPIKey})
-	res, err := openAIProvider.CompleteResponse(
-		ctx,
-		request.Completion{
-			Model: models.GPT4O{
-				PdfFile: map[string]string{
-					"document.pdf": dataURL,
-				},
+model := models.GPT6Sol{
+	StructuredOutput: map[string]any{
+		"name": "city",
+		"schema": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"name":    map[string]any{"type": "string"},
+				"country": map[string]any{"type": "string"},
 			},
-			UserMessage: "Summarize the contents of this PDF",
+			"required": []string{"name", "country"},
 		},
-		http.Client{},
-		nil,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(res.Content)
-}
-```
-
-### Google/Gemini with PDF Input
-
-```go
-func main() {
-	ctx := context.Background()
-
-	googleAPIKey := os.Getenv("GOOGLE_API_KEY")
-
-	// Read and encode a PDF file
-	fileBytes, err := os.ReadFile("document.pdf")
-	if err != nil {
-		panic(err)
-	}
-	encodedPdf := base64.StdEncoding.EncodeToString(fileBytes)
-
-	// Create a Google provider
-	googleProvider := providers.NewGoogle([]string{googleAPIKey})
-
-	// Example with base64 encoded PDF
-	res, err := googleProvider.CompleteResponse(
-		ctx,
-		request.Completion{
-			Model: models.Gemini38Flash{
-				PdfFiles: []models.GooglePdf{
-					models.GooglePdf(encodedPdf), // Base64 encoded PDF
-				},
-			},
-			SystemMessage: "You are a helpful assistant that analyzes documents.",
-			UserMessage:   "Summarize the main points from this PDF document",
-		},
-		http.Client{},
-		nil,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(res.Content)
-}
-```
-
-### Anthropic with PDF Input
-
-```go
-func main() {
-	ctx := context.Background()
-
-	anthropicAPIKey := os.Getenv("ANTHROPIC_API_KEY")
-
-	// Read and encode a PDF file
-	fileBytes, err := os.ReadFile("document.pdf")
-	if err != nil {
-		panic(err)
-	}
-	encodedPdf := base64.StdEncoding.EncodeToString(fileBytes)
-
-	// Create an Anthropic provider
-	anthropicProvider := providers.NewAnthropic([]string{anthropicAPIKey})
-
-	// Request with PDF
-	res, err := anthropicProvider.CompleteResponse(
-		ctx,
-		request.Completion{
-			Model: models.Claude46Sonnet{
-				PdfFiles: []models.AnthropicPdf{
-					models.AnthropicPdf(encodedPdf),
-				},
-			},
-			SystemMessage: "You are a helpful document analyst.",
-			UserMessage:   "Analyze this PDF and provide key insights",
-		},
-		http.Client{},
-		nil,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(res.Content)
-}
-```
-
-## Streaming Responses
-
-`router.Stream` calls the chunk handler for each piece of text as it arrives:
-
-```go
-func main() {
-	ctx := context.Background()
-
-	// Create provider and router
-	openAIAPIKey := os.Getenv("OPENAI_API_KEY")
-	openAIProvider := providers.NewOpenAI([]string{openAIAPIKey})
-
-	timeout := 30 * time.Second
-	router := heimdall.New(timeout, []heimdall.LLMProvider{openAIProvider})
-
-	// Create request
-	req := request.Completion{
-		Model: models.GPT4O{},
-		SystemMessage: "You are a helpful assistant.",
-		UserMessage:   "Write a short story about a space explorer",
-		Temperature: 0.7,
-		Tags: map[string]string{
-			"env":  "production",
-			"type": "creative",
-		},
-	}
-
-	// Handle streaming chunks
-	chunkHandler := func(chunk string) error {
-		fmt.Print(chunk)
-		return nil
-	}
-
-	// Get streaming response
-	_, err := router.Stream(ctx, req, chunkHandler)
-	if err != nil {
-		panic(err)
-	}
-}
-```
-
-## Structured Output
-
-Pass a JSON schema through the model's `StructuredOutput` field.
-
-### OpenAI Structured Output
-
-```go
-var schema = map[string]any{
-	"name": "financial_analysis",
-	"schema": map[string]any{
-		"type": "object",
-		"properties": map[string]any{
-			"summary":     map[string]any{"type": "string"},
-			"marketCap":   map[string]any{"type": "number"},
-			"advantages":  map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
-			"risks":       map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
-			"recommendation": map[string]any{"type": "string", "enum": []string{"buy", "hold", "sell"}},
-		},
-		"required": []string{"summary", "recommendation"},
 	},
 }
-
-func main() {
-	ctx := context.Background()
-
-	openAIAPIKey := os.Getenv("OPENAI_API_KEY")
-
-	openAIProvider := providers.NewOpenAI([]string{openAIAPIKey})
-	res, err := openAIProvider.CompleteResponse(
-		ctx,
-		request.Completion{
-			Model: models.GPT4O{
-				StructuredOutput: schema,
-			},
-			UserMessage: "Create a financial analysis of Nvidia at its current valuation",
-		},
-		http.Client{},
-		nil,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(res.Content)
-}
 ```
 
-### Google/Gemini Structured Output
+Anthropic and Gemini models take the schema object directly, without the `name` and `schema` wrapper.
+
+### Calling a provider directly
+
+Every provider also implements `CompleteResponse` and `StreamResponse`. Use them to call one provider without the router's fallbacks.
 
 ```go
-var schemaGoogle = map[string]any{
-	"type": "object",
-	"properties": map[string]any{
-		"summary":     map[string]any{"type": "string"},
-		"marketCap":   map[string]any{"type": "number"},
-		"advantages":  map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
-		"risks":       map[string]any{"type": "array", "items": map[string]any{"type": "string"}},
-		"recommendation": map[string]any{"type": "string", "enum": []string{"buy", "hold", "sell"}},
-	},
-	"required": []string{"summary", "recommendation"},
-}
+anthropic := providers.NewAnthropic([]string{os.Getenv("ANTHROPIC_API_KEY")})
 
-func main() {
-	ctx := context.Background()
-
-	googleAPIKey := os.Getenv("GOOGLE_API_KEY")
-
-	googleProvider := providers.NewGoogle([]string{googleAPIKey})
-	res, err := googleProvider.CompleteResponse(
-		ctx,
-		request.Completion{
-			Model: models.Gemini38Flash{
-				StructuredOutput: schemaGoogle,
-			},
-			SystemMessage: "You are a financial analyst.",
-			UserMessage:   "Create a financial analysis of Nvidia at its current valuation",
-		},
-		http.Client{},
-		nil,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(res.Content)
-}
+res, err := anthropic.CompleteResponse(ctx, req, http.Client{Timeout: time.Minute}, nil)
 ```
 
-## Advanced Router Configuration
+### Errors
 
-Register several providers and list fallback models. The router tries the primary model first, then each fallback in order.
+When no provider is registered for the model or any of its fallbacks, the router returns `heimdall.ErrUnsupportedProvider`. `router.Stream` returns `heimdall.ErrNoChunkHandler` when the handler is nil. Other errors come from the last model that was tried.
 
 ```go
-func main() {
-	ctx := context.Background()
-
-	// Configure providers
-	openAIAPIKey := os.Getenv("OPENAI_API_KEY")
-	googleAPIKey := os.Getenv("GOOGLE_API_KEY")
-	anthropicAPIKey := os.Getenv("ANTHROPIC_API_KEY")
-
-	openAIProvider := providers.NewOpenAI([]string{openAIAPIKey})
-	googleProvider := providers.NewGoogle([]string{googleAPIKey})
-	anthropicProvider := providers.NewAnthropic([]string{anthropicAPIKey})
-
-	// Create router with all providers
-	timeout := 60 * time.Second
-	router := heimdall.New(timeout, []heimdall.LLMProvider{
-		openAIProvider,
-		googleProvider,
-		anthropicProvider,
-	})
-
-	// Create request with primary model and fallbacks
-	req := request.Completion{
-		// Primary model - will be tried first
-		Model: models.GPT4O{},
-
-		// Fallbacks - will be tried in order if primary fails
-		Fallback: []models.Model{
-			models.Claude46Sonnet{},
-			models.Gemini38Flash{},
-		},
-
-		SystemMessage: "You are a helpful assistant.",
-		UserMessage:   "Explain quantum computing in simple terms",
-		Temperature: 0.3,
-		TopP:        1.0,
-		Tags: map[string]string{
-			"env":     "production",
-			"type":    "science",
-			"purpose": "education",
-		},
-	}
-
-	// Get completion, which will try fallbacks if needed
-	response, err := router.Complete(ctx, req)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(response.Content)
-
-	// Access request logs for debugging
-	fmt.Printf("Request logs: %+v\n", response.RequestLog)
+res, err := router.Complete(ctx, req)
+switch {
+case errors.Is(err, heimdall.ErrUnsupportedProvider):
+	// Register a provider for one of the request's models.
+case err != nil:
+	// The request failed on every model.
 }
 ```
 
-## Working with Images
+Every response also carries `RequestLog`, which lists each model and key that was tried.
 
-### OpenAI with Image Input
+## Supported models
 
-```go
-func main() {
-	ctx := context.Background()
+The tables list current models. Models with an announced shutdown date and retired models remain in the `models` package and are marked in their doc comments. The [package reference](https://pkg.go.dev/github.com/JazzJackrabbit/heimdall-ng/models) lists every type.
 
-	openAIAPIKey := os.Getenv("OPENAI_API_KEY")
+<details>
+<summary>OpenAI</summary>
 
-	// Read and encode the image file
-	fileBytes, err := os.ReadFile("image.jpg")
-	if err != nil {
-		panic(err)
-	}
+| Type | Model ID |
+| --- | --- |
+| `GPT6Astra` | gpt-6-astra |
+| `GPT6Sol` | gpt-6-sol |
+| `GPT6Luna` | gpt-6-luna |
+| `GPT56Sol` | gpt-5.6-sol |
+| `GPT56Terra` | gpt-5.6-terra |
+| `GPT56Luna` | gpt-5.6-luna |
+| `GPT55` | gpt-5.5 |
+| `GPT54` | gpt-5.4 |
+| `GPT54Mini` | gpt-5.4-mini |
+| `GPT54Nano` | gpt-5.4-nano |
+| `GPT53Codex` | gpt-5.3-codex |
+| `GPT52` | gpt-5.2 |
+| `GPT51` | gpt-5.1 |
+| `GPT51Chat` | gpt-5.1-chat-latest |
+| `GPT5Chat` | gpt-5-chat-latest |
+| `GPT41` | gpt-4.1-2025-04-14 |
+| `GPT41Mini` | gpt-4.1-mini-2025-04-14 |
+| `GPT4O` | gpt-4o-2024-11-20 |
+| `GPT4OMini` | gpt-4o-mini-2024-07-18 |
+| `GPTImage2` | gpt-image-2 |
 
-	encodedString := base64.StdEncoding.EncodeToString(fileBytes)
-	dataURL := "data:image/jpeg;base64," + encodedString
+</details>
 
-	openAIProvider := providers.NewOpenAI([]string{openAIAPIKey})
-	res, err := openAIProvider.CompleteResponse(
-		ctx,
-		request.Completion{
-			Model: models.GPT4O{
-				ImageFile: []models.OpenaiImagePayload{
-					{
-						Url:    dataURL,
-						Detail: "high",
-					},
-				},
-			},
-			UserMessage: "Describe what you see in this image",
-		},
-		http.Client{},
-		nil,
-	)
+<details>
+<summary>Anthropic</summary>
 
-	if err != nil {
-		panic(err)
-	}
+| Type | Model ID |
+| --- | --- |
+| `ClaudeFable51` | claude-fable-5-1 |
+| `Claude55Opus` | claude-opus-5-5 |
+| `ClaudeFable5` | claude-fable-5 |
+| `Claude5Opus` | claude-opus-5 |
+| `Claude5Sonnet` | claude-sonnet-5 |
+| `Claude48Opus` | claude-opus-4-8 |
+| `Claude47Opus` | claude-opus-4-7 |
+| `Claude46Opus` | claude-opus-4-6 |
+| `Claude46Sonnet` | claude-sonnet-4-6 |
+| `Claude45Opus` | claude-opus-4-5-20251101 |
+| `Claude45Sonnet` | claude-sonnet-4-5-20250929 |
+| `Claude45Haiku` | claude-haiku-4-5 |
 
-	fmt.Println(res.Content)
-}
+Claude Fable models require 30-day data retention on the Anthropic organization.
+
+</details>
+
+<details>
+<summary>Google Gemini and Vertex AI</summary>
+
+Each Gemini type has a Vertex AI counterpart with the `Vertex` prefix, for example `VertexGemini38Flash`. `Gemini25ProPreview` and `Gemini25FlashPreview` keep their original names for compatibility. Their Vertex AI types are `VertexGemini25Pro` and `VertexGemini25Flash`.
+
+| Type | Model ID |
+| --- | --- |
+| `Gemini38Flash` | gemini-3.8-flash |
+| `Gemini37Flash` | gemini-3.7-flash |
+| `Gemini36Flash` | gemini-3.6-flash |
+| `Gemini35Flash` | gemini-3.5-flash |
+| `Gemini35FlashLite` | gemini-3.5-flash-lite |
+| `Gemini31ProPreview` | gemini-3.1-pro-preview |
+| `Gemini31FlashImage` | gemini-3.1-flash-image |
+| `Gemini3FlashPreview` | gemini-3-flash-preview |
+| `Gemini3ProImage` | gemini-3-pro-image |
+| `Gemini25ProPreview` | gemini-2.5-pro |
+| `Gemini25FlashPreview` | gemini-2.5-flash |
+| `Gemini25FlashLite` | gemini-2.5-flash-lite |
+
+</details>
+
+<details>
+<summary>xAI Grok, Perplexity and OpenRouter</summary>
+
+| Type | Model ID |
+| --- | --- |
+| `Grok46` | grok-4.6 |
+| `Grok45` | grok-4.5 |
+| `Grok43` | grok-4.3 |
+| `SonarReasoningPro` | sonar-reasoning-pro |
+| `SonarPro` | sonar-pro |
+| `Sonar` | sonar |
+| `OpenRouterModel` | any OpenRouter model, set in `ModelName` |
+
+</details>
+
+## Development
+
+```bash
+go test ./...
+golangci-lint run
 ```
 
-### Anthropic with Image Input
-
-```go
-func main() {
-	ctx := context.Background()
-
-	anthropicAPIKey := os.Getenv("ANTHROPIC_API_KEY")
-
-	// Read and encode the image file
-	fileBytes, err := os.ReadFile("image.jpg")
-	if err != nil {
-		panic(err)
-	}
-
-	encodedString := base64.StdEncoding.EncodeToString(fileBytes)
-
-	anthropicProvider := providers.NewAnthropic([]string{anthropicAPIKey})
-	res, err := anthropicProvider.CompleteResponse(
-		ctx,
-		request.Completion{
-			Model: models.Claude46Sonnet{
-				ImageFile: map[models.AnthropicImageType]string{
-					models.AnthropicImageJpeg: encodedString,
-				},
-			},
-			SystemMessage: "You are a helpful visual assistant.",
-			UserMessage:   "Describe what you see in this image",
-		},
-		http.Client{},
-		nil,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(res.Content)
-}
-```
-
-## Error Handling
-
-The router returns sentinel errors that can be checked with `errors.Is`:
-
-```go
-response, err := router.Complete(ctx, req)
-if err != nil {
-	switch {
-	case errors.Is(err, heimdall.ErrNoChunkHandler):
-		// Handle missing chunk handler for streaming
-		fmt.Println("Streaming requires a chunk handler")
-	case errors.Is(err, heimdall.ErrUnsupportedProvider):
-		// Handle case where provider for model is not registered
-		fmt.Println("No provider registered for this model")
-	default:
-		// Handle other errors
-		fmt.Printf("Error: %v\n", err)
-	}
-	return
-}
-```
-
-## Supported Models
-
-Models retired by their provider stay in the `models` package, marked as deprecated, and are not listed here.
-
-### OpenAI Models
-- GPT-6 Astra (gpt-6-astra)
-- GPT-6 Sol (gpt-6-sol)
-- GPT-6 Luna (gpt-6-luna)
-- GPT-5.6 Sol (gpt-5.6-sol)
-- GPT-5.6 Terra (gpt-5.6-terra)
-- GPT-5.6 Luna (gpt-5.6-luna)
-- GPT-5.5 (gpt-5.5)
-- GPT-5.4 (gpt-5.4)
-- GPT-5.4 Mini (gpt-5.4-mini)
-- GPT-5.4 Nano (gpt-5.4-nano)
-- GPT-5.3 Codex (gpt-5.3-codex)
-- GPT-5.2 (gpt-5.2)
-- GPT-5.1 (gpt-5.1)
-- GPT-5.1 Chat (gpt-5.1-chat-latest)
-- GPT-5 (gpt-5-2025-08-07)
-- GPT-5 Mini (gpt-5-mini-2025-08-07)
-- GPT-5 Nano (gpt-5-nano-2025-08-07)
-- GPT-5 Chat (gpt-5-chat-latest)
-- GPT-4.1 (gpt-4.1-2025-04-14)
-- GPT-4.1 Mini (gpt-4.1-mini-2025-04-14)
-- GPT-4.1 Nano (gpt-4.1-nano-2025-04-14)
-- GPT-4o (gpt-4o-2024-11-20)
-- GPT-4o Mini (gpt-4o-mini-2024-07-18)
-- GPT-4 Turbo (gpt-4-turbo)
-- GPT-4 (gpt-4-0613)
-- O4 Mini (o4-mini)
-- O3 (o3)
-- O3 Mini (o3-mini-2025-01-31)
-- O1 (o1-2024-12-17)
-- GPT Image 2 (gpt-image-2), same parameters as gpt-image-1 plus sizes up to 3840x2160
-- GPT Image (gpt-image-1), pass `ImageFile` to edit reference images
-
-### Anthropic Models
-- Claude Fable 5.1 (claude-fable-5-1), requires 30-day data retention on the organization
-- Claude Opus 5.5 (claude-opus-5-5)
-- Claude Fable 5 (claude-fable-5), requires 30-day data retention on the organization
-- Claude Opus 5 (claude-opus-5)
-- Claude Sonnet 5 (claude-sonnet-5)
-- Claude 4.8 Opus (claude-opus-4-8)
-- Claude 4.7 Opus (claude-opus-4-7)
-- Claude 4.6 Opus (claude-opus-4-6)
-- Claude 4.6 Sonnet (claude-sonnet-4-6)
-- Claude 4.5 Opus (claude-opus-4-5-20251101)
-- Claude 4.5 Sonnet (claude-sonnet-4-5-20250929)
-- Claude 4.5 Haiku (claude-haiku-4-5)
-
-### Google/Gemini Models
-- Gemini 3.8 Flash (gemini-3.8-flash)
-- Gemini 3.7 Flash (gemini-3.7-flash)
-- Gemini 3.6 Flash (gemini-3.6-flash)
-- Gemini 3.5 Flash (gemini-3.5-flash)
-- Gemini 3.5 Flash Lite (gemini-3.5-flash-lite)
-- Gemini 3.1 Pro Preview (gemini-3.1-pro-preview)
-- Gemini 3.1 Flash Lite (gemini-3.1-flash-lite)
-- Gemini 3.1 Flash Image (gemini-3.1-flash-image)
-- Gemini 3 Flash Preview (gemini-3-flash-preview)
-- Gemini 3 Pro Image (gemini-3-pro-image)
-- Gemini 2.5 Pro (gemini-2.5-pro)
-- Gemini 2.5 Flash (gemini-2.5-flash)
-- Gemini 2.5 Flash Lite (gemini-2.5-flash-lite)
-- Gemini 2.5 Flash Image (gemini-2.5-flash-image)
-
-### VertexAI Models
-Gemini models served through Vertex AI use the `VertexGemini*` model types:
-- Gemini 3.8 Flash (gemini-3.8-flash)
-- Gemini 3.7 Flash (gemini-3.7-flash)
-- Gemini 3.6 Flash (gemini-3.6-flash)
-- Gemini 3.5 Flash (gemini-3.5-flash)
-- Gemini 3.5 Flash Lite (gemini-3.5-flash-lite)
-- Gemini 3.1 Pro Preview (gemini-3.1-pro-preview)
-- Gemini 3.1 Flash Lite (gemini-3.1-flash-lite)
-- Gemini 3.1 Flash Image (gemini-3.1-flash-image)
-- Gemini 3 Flash Preview (gemini-3-flash-preview)
-- Gemini 3 Pro Image (gemini-3-pro-image)
-- Gemini 2.5 Pro (gemini-2.5-pro)
-- Gemini 2.5 Flash (gemini-2.5-flash)
-- Gemini 2.5 Flash Lite (gemini-2.5-flash-lite)
-- Gemini 2.5 Flash Image (gemini-2.5-flash-image)
-
-### Grok Models
-- Grok 4.6 (grok-4.6)
-- Grok 4.5 (grok-4.5)
-- Grok 4.3 (grok-4.3)
-
-### Perplexity Models
-- Sonar Reasoning Pro (sonar-reasoning-pro)
-- Sonar Pro (sonar-pro)
-- Sonar (sonar)
-
-### OpenRouter
-- Any model available on OpenRouter, selected by model name
+Request-building and response-parsing tests run offline against local test servers. Tests that call a provider's API are skipped unless its credentials are set in `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `GROK_API_KEY` or `PERPLEXITY_API_KEY`. Vertex AI tests use `VERTEX_PROJECT_ID` and `VERTEX_LOCATION`. The [justfile](justfile) has per-provider test recipes and loads these variables from a `.env` file.
 
 ## License
 
-BSD-3-Clause. See [LICENSE](LICENSE). Based on [flyx-ai/heimdall](https://github.com/flyx-ai/heimdall).
+BSD 3-Clause. See [LICENSE](LICENSE).
