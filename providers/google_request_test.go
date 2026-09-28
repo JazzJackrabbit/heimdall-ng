@@ -60,3 +60,22 @@ func TestGemini37FlashRequest(t *testing.T) {
 	require.True(t, ok, "thinkingConfig missing from generationConfig")
 	assert.Equal(t, "medium", thinking["thinkingLevel"])
 }
+
+func TestGemini38FlashRequest(t *testing.T) {
+	path, body := captureGoogleRequest(t)
+
+	res, _ := streamAndCollect(
+		t,
+		NewGoogle([]string{"test-key"}),
+		models.Gemini38Flash{ThinkingLevel: models.MediumThinkingLevel},
+	)
+
+	assert.Equal(t, "Hello", res.Content)
+	assert.Equal(t, "/gemini-3.8-flash:streamGenerateContent", *path)
+
+	config, ok := (*body)["generationConfig"].(map[string]any)
+	require.True(t, ok, "generationConfig missing from request body")
+	thinking, ok := config["thinkingConfig"].(map[string]any)
+	require.True(t, ok, "thinkingConfig missing from generationConfig")
+	assert.Equal(t, "medium", thinking["thinkingLevel"])
+}

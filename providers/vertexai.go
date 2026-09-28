@@ -409,6 +409,14 @@ func extractVertexModelConfig(model models.Model) vertexModelConfig {
 		config.Files = m.Files
 		config.ThinkingLevel = m.ThinkingLevel
 		config.MediaResolution = m.MediaResolution
+	case models.VertexGemini38Flash:
+		config.Tools = m.Tools
+		config.StructuredOutput = m.StructuredOutput
+		config.PdfFiles = m.PdfFiles
+		config.ImageFile = m.ImageFile
+		config.Files = m.Files
+		config.ThinkingLevel = m.ThinkingLevel
+		config.MediaResolution = m.MediaResolution
 	case models.VertexGemini25FlashImage:
 		config.ImageFile = m.ImageFile
 		config.PdfFiles = m.PdfFiles

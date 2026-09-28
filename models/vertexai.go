@@ -352,6 +352,7 @@ func (v VertexGemini31ProPreview) GetProvider() string {
 var _ Model = new(VertexGemini31ProPreview)
 var _ CostBreakdown = new(VertexGemini31ProPreview)
 
+// Scheduled for shutdown by Google on May 7, 2027. Use gemini-3.5-flash-lite as a replacement.
 type VertexGemini31FlashLite struct {
 	Tools            GoogleTool
 	StructuredOutput map[string]any
@@ -520,6 +521,41 @@ func (v VertexGemini37Flash) GetProvider() string {
 
 var _ Model = new(VertexGemini37Flash)
 var _ CostBreakdown = new(VertexGemini37Flash)
+
+type VertexGemini38Flash struct {
+	Tools            GoogleTool
+	StructuredOutput map[string]any
+	PdfFiles         []GooglePdf
+	ImageFile        []GoogleImagePayload
+	Files            []GoogleFilePayload
+	ThinkingLevel    ThinkingLevel
+	MediaResolution  MediaResolution
+}
+
+// Gemini 3.8 Flash is priced at $0.75/$3.75 per 1M input/output tokens through
+// December 31, 2026. Google's published price returns to $1.50/$7.50 on January 1, 2027.
+func (v VertexGemini38Flash) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00000075
+}
+
+func (v VertexGemini38Flash) GetInputCostPer1M() float64 {
+	return 0.75
+}
+
+func (v VertexGemini38Flash) GetOutputCostPer1M() float64 {
+	return 3.75
+}
+
+func (v VertexGemini38Flash) GetName() string {
+	return "gemini-3.8-flash"
+}
+
+func (v VertexGemini38Flash) GetProvider() string {
+	return VertexProvider
+}
+
+var _ Model = new(VertexGemini38Flash)
+var _ CostBreakdown = new(VertexGemini38Flash)
 
 type VertexGemini3ProImage struct {
 	NumberOfImages  int
