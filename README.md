@@ -667,8 +667,6 @@ Heimdall supports various models from different providers:
 - GPT-5 Chat (gpt-5-chat-latest)
 - GPT-5.1 (gpt-5.1)
 - GPT-5.1 Chat (gpt-5.1-chat-latest)
-- GPT-5.1 Codex (gpt-5.1-codex)
-- GPT-5.1 Codex Mini (gpt-5.1-codex-mini)
 - GPT-5.2 (gpt-5.2)
 - O1 (o1-2024-12-17)
 - O3 Mini (o3-mini-2025-01-31)

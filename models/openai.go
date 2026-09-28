@@ -3,22 +3,26 @@ package models
 const OpenaiProvider = "openai"
 
 const (
-	O3MiniAlias         = "o3-mini-2025-01-31"
-	GPT4OAlias          = "gpt-4o-2024-11-20"
-	GPT4OMiniAlias      = "gpt-4o-mini-2024-07-18"
-	O1Alias             = "o1-2024-12-17"
-	GPT4Alias           = "gpt-4-0613"
-	GPT4TurboAlias      = "gpt-4-turbo"
-	GPT41Alias          = "gpt-4.1-2025-04-14"
-	GPT41MiniAlias      = "gpt-4.1-mini-2025-04-14"
-	GPT41NanoAlias      = "gpt-4.1-nano-2025-04-14"
-	GPT5Alias           = "gpt-5-2025-08-07"
-	GPT5MiniAlias       = "gpt-5-mini-2025-08-07"
-	GPT5NanoAlias       = "gpt-5-nano-2025-08-07"
-	GPT5ChatAlias       = "gpt-5-chat-latest"
-	GPT51Alias          = "gpt-5.1"
-	GPT51ChatAlias      = "gpt-5.1-chat-latest"
-	GPT51CodexAlias     = "gpt-5.1-codex"
+	O3MiniAlias    = "o3-mini-2025-01-31"
+	GPT4OAlias     = "gpt-4o-2024-11-20"
+	GPT4OMiniAlias = "gpt-4o-mini-2024-07-18"
+	O1Alias        = "o1-2024-12-17"
+	GPT4Alias      = "gpt-4-0613"
+	GPT4TurboAlias = "gpt-4-turbo"
+	GPT41Alias     = "gpt-4.1-2025-04-14"
+	GPT41MiniAlias = "gpt-4.1-mini-2025-04-14"
+	GPT41NanoAlias = "gpt-4.1-nano-2025-04-14"
+	GPT5Alias      = "gpt-5-2025-08-07"
+	GPT5MiniAlias  = "gpt-5-mini-2025-08-07"
+	GPT5NanoAlias  = "gpt-5-nano-2025-08-07"
+	GPT5ChatAlias  = "gpt-5-chat-latest"
+	GPT51Alias     = "gpt-5.1"
+	GPT51ChatAlias = "gpt-5.1-chat-latest"
+	// Deprecated: gpt-5.1-codex was shut down by OpenAI on July 23, 2026. Requests to this model will fail.
+	// Use GPT56SolAlias (gpt-5.6-sol) as a replacement.
+	GPT51CodexAlias = "gpt-5.1-codex"
+	// Deprecated: gpt-5.1-codex-mini was shut down by OpenAI on July 23, 2026. Requests to this model will fail.
+	// Use GPT56TerraAlias (gpt-5.6-terra) as a replacement.
 	GPT51CodexMiniAlias = "gpt-5.1-codex-mini"
 	GPT52Alias          = "gpt-5.2"
 	GPT53CodexAlias     = "gpt-5.3-codex"
@@ -574,6 +578,8 @@ func (g GPT51Chat) GetProvider() string {
 
 var _ Model = new(GPT51Chat)
 
+// Deprecated: gpt-5.1-codex was shut down by OpenAI on July 23, 2026. Requests to this model will fail.
+// Use GPT56Sol (gpt-5.6-sol) as a replacement.
 type GPT51Codex struct {
 	StructuredOutput map[string]any
 	PdfFile          map[string]string
@@ -594,6 +600,8 @@ func (g GPT51Codex) GetProvider() string {
 
 var _ Model = new(GPT51Codex)
 
+// Deprecated: gpt-5.1-codex-mini was shut down by OpenAI on July 23, 2026. Requests to this model will fail.
+// Use GPT56Terra (gpt-5.6-terra) as a replacement.
 type GPT51CodexMini struct {
 	StructuredOutput map[string]any
 	PdfFile          map[string]string
