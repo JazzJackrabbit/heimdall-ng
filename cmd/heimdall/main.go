@@ -19,7 +19,7 @@ func main() {
 	router := heimdall.New(30*time.Second, []heimdall.LLMProvider{google})
 
 	res, err := router.Complete(ctx, request.Completion{
-		Model:         models.Gemini25FlashPreview{},
+		Model:         models.Gemini38Flash{},
 		SystemMessage: "You are a helpful assistant.",
 		UserMessage:   "What is the capital of France?",
 	})
