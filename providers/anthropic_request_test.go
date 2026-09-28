@@ -61,6 +61,8 @@ func TestAnthropicSamplingParamsPerModel(t *testing.T) {
 		{models.Claude5Opus{}, false},
 		{models.Claude5Sonnet{}, false},
 		{models.ClaudeFable5{}, false},
+		{models.Claude55Opus{}, false},
+		{models.ClaudeFable51{}, false},
 	}
 
 	for _, tc := range cases {

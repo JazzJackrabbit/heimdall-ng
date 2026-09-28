@@ -195,6 +195,41 @@ func TestClaude5OpusWithCompletion(t *testing.T) {
 	assert.NotEmpty(t, res.Model, "model should not be empty")
 }
 
+func TestClaude55OpusWithCompletion(t *testing.T) {
+	t.Parallel()
+
+	apiKey := os.Getenv("ANTHROPIC_API_KEY")
+	if apiKey == "" {
+		t.Skip("ANTHROPIC_API_KEY not set")
+	}
+
+	client := http.Client{
+		Timeout: 2 * time.Minute,
+	}
+	anthropicProvider := providers.NewAnthropic([]string{apiKey})
+
+	req := request.Completion{
+		Model: models.Claude55Opus{
+			MaxOutputTokens: 8192,
+		},
+		SystemMessage: "you are a helpful assistant.",
+		UserMessage:   "Say hello in one sentence.",
+		Tags: map[string]string{
+			"type": "testing",
+		},
+	}
+
+	res, err := anthropicProvider.CompleteResponse(
+		context.Background(),
+		req,
+		client,
+		nil,
+	)
+	require.NoError(t, err, "CompleteResponse returned an unexpected error")
+	assert.NotEmpty(t, res.Content, "content should not be empty")
+	assert.NotEmpty(t, res.Model, "model should not be empty")
+}
+
 func TestClaude5SonnetWithCompletion(t *testing.T) {
 	t.Parallel()
 

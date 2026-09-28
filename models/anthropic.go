@@ -29,6 +29,8 @@ const (
 	AnthropicClaude5OpusAlias    = "claude-opus-5"
 	AnthropicClaude5SonnetAlias  = "claude-sonnet-5"
 	AnthropicClaudeFable5Alias   = "claude-fable-5"
+	AnthropicClaude55OpusAlias   = "claude-opus-5-5"
+	AnthropicClaudeFable51Alias  = "claude-fable-5-1"
 )
 
 type (
@@ -471,3 +473,73 @@ func (c ClaudeFable5) GetProvider() string {
 
 var _ Model = new(ClaudeFable5)
 var _ CostBreakdown = new(ClaudeFable5)
+
+// Claude55Opus does not accept temperature or top_p; the provider drops those request fields.
+// Thinking is always on and counts toward MaxOutputTokens.
+type Claude55Opus struct {
+	ImageFile        map[AnthropicImageType]string
+	PdfFiles         []AnthropicPdf
+	StructuredOutput map[string]any
+	// MaxOutputTokens sets the maximum output tokens (up to 128K).
+	// Defaults to 4096 when zero.
+	MaxOutputTokens int
+}
+
+func (c Claude55Opus) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.000004
+}
+
+func (c Claude55Opus) GetInputCostPer1M() float64 {
+	return 4.0
+}
+
+func (c Claude55Opus) GetOutputCostPer1M() float64 {
+	return 20.0
+}
+
+func (c Claude55Opus) GetName() string {
+	return AnthropicClaude55OpusAlias
+}
+
+func (c Claude55Opus) GetProvider() string {
+	return AnthropicProvider
+}
+
+var _ Model = new(Claude55Opus)
+var _ CostBreakdown = new(Claude55Opus)
+
+// ClaudeFable51 requires the organization to have 30-day data retention;
+// requests from zero-data-retention organizations are rejected by Anthropic.
+// It does not accept temperature or top_p; the provider drops those request fields.
+// Thinking is always on and counts toward MaxOutputTokens.
+type ClaudeFable51 struct {
+	ImageFile        map[AnthropicImageType]string
+	PdfFiles         []AnthropicPdf
+	StructuredOutput map[string]any
+	// MaxOutputTokens sets the maximum output tokens (up to 128K).
+	// Defaults to 4096 when zero.
+	MaxOutputTokens int
+}
+
+func (c ClaudeFable51) EstimateCost(text string) float64 {
+	return (float64(len(text)) / 4) * 0.00001
+}
+
+func (c ClaudeFable51) GetInputCostPer1M() float64 {
+	return 10.0
+}
+
+func (c ClaudeFable51) GetOutputCostPer1M() float64 {
+	return 50.0
+}
+
+func (c ClaudeFable51) GetName() string {
+	return AnthropicClaudeFable51Alias
+}
+
+func (c ClaudeFable51) GetProvider() string {
+	return AnthropicProvider
+}
+
+var _ Model = new(ClaudeFable51)
+var _ CostBreakdown = new(ClaudeFable51)
