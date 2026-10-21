@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -167,7 +166,7 @@ func TestAIAndModelCatalog(t *testing.T) {
 		assert.False(t, seen[name], "duplicate model %s", name)
 		seen[name] = true
 		assert.Equal(t, models.AIAndProvider, m.GetProvider(), name)
-		assert.True(t, strings.Contains(name, "/"), "%s keeps its lab prefix", name)
+		assert.Contains(t, name, "/", "%s keeps its lab prefix", name)
 		assert.Positive(t, m.GetOutputCostPer1M(), name)
 		assert.Positive(t, m.ContextWindow(), name)
 		assert.Contains(t, m.ReasoningEfforts(), m.DefaultReasoningEffort(), name)

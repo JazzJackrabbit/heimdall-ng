@@ -110,13 +110,7 @@ func (AIAndKimiK3) MaxOutputTokenLimit() int { return 131072 }
 func (AIAndKimiK3) AcceptsImages() bool { return true }
 
 func (m AIAndKimiK3) GetAIAndParams() AIAndParams {
-	return AIAndParams{
-		ImageFile:        m.ImageFile,
-		PdfFiles:         m.PdfFiles,
-		StructuredOutput: m.StructuredOutput,
-		ReasoningEffort:  m.ReasoningEffort,
-		MaxOutputTokens:  m.MaxOutputTokens,
-	}
+	return AIAndParams(m)
 }
 
 var _ AIAndModel = new(AIAndKimiK3)
@@ -156,13 +150,7 @@ func (AIAndKimiK27Code) MaxOutputTokenLimit() int { return 262144 }
 func (AIAndKimiK27Code) AcceptsImages() bool { return true }
 
 func (m AIAndKimiK27Code) GetAIAndParams() AIAndParams {
-	return AIAndParams{
-		ImageFile:        m.ImageFile,
-		PdfFiles:         m.PdfFiles,
-		StructuredOutput: m.StructuredOutput,
-		ReasoningEffort:  m.ReasoningEffort,
-		MaxOutputTokens:  m.MaxOutputTokens,
-	}
+	return AIAndParams(m)
 }
 
 var _ AIAndModel = new(AIAndKimiK27Code)
@@ -245,13 +233,7 @@ func (AIAndGLM53Flash) MaxOutputTokenLimit() int { return 131072 }
 func (AIAndGLM53Flash) AcceptsImages() bool { return true }
 
 func (m AIAndGLM53Flash) GetAIAndParams() AIAndParams {
-	return AIAndParams{
-		ImageFile:        m.ImageFile,
-		PdfFiles:         m.PdfFiles,
-		StructuredOutput: m.StructuredOutput,
-		ReasoningEffort:  m.ReasoningEffort,
-		MaxOutputTokens:  m.MaxOutputTokens,
-	}
+	return AIAndParams(m)
 }
 
 var _ AIAndModel = new(AIAndGLM53Flash)
@@ -377,13 +359,7 @@ func (AIAndDeepSeekV41Flash) MaxOutputTokenLimit() int { return 384000 }
 func (AIAndDeepSeekV41Flash) AcceptsImages() bool { return true }
 
 func (m AIAndDeepSeekV41Flash) GetAIAndParams() AIAndParams {
-	return AIAndParams{
-		ImageFile:        m.ImageFile,
-		PdfFiles:         m.PdfFiles,
-		StructuredOutput: m.StructuredOutput,
-		ReasoningEffort:  m.ReasoningEffort,
-		MaxOutputTokens:  m.MaxOutputTokens,
-	}
+	return AIAndParams(m)
 }
 
 var _ AIAndModel = new(AIAndDeepSeekV41Flash)
@@ -466,13 +442,7 @@ func (AIAndQwen38_27B) MaxOutputTokenLimit() int { return 32768 }
 func (AIAndQwen38_27B) AcceptsImages() bool { return true }
 
 func (m AIAndQwen38_27B) GetAIAndParams() AIAndParams {
-	return AIAndParams{
-		ImageFile:        m.ImageFile,
-		PdfFiles:         m.PdfFiles,
-		StructuredOutput: m.StructuredOutput,
-		ReasoningEffort:  m.ReasoningEffort,
-		MaxOutputTokens:  m.MaxOutputTokens,
-	}
+	return AIAndParams(m)
 }
 
 var _ AIAndModel = new(AIAndQwen38_27B)
@@ -512,13 +482,7 @@ func (AIAndQwen36_27B) MaxOutputTokenLimit() int { return 65536 }
 func (AIAndQwen36_27B) AcceptsImages() bool { return true }
 
 func (m AIAndQwen36_27B) GetAIAndParams() AIAndParams {
-	return AIAndParams{
-		ImageFile:        m.ImageFile,
-		PdfFiles:         m.PdfFiles,
-		StructuredOutput: m.StructuredOutput,
-		ReasoningEffort:  m.ReasoningEffort,
-		MaxOutputTokens:  m.MaxOutputTokens,
-	}
+	return AIAndParams(m)
 }
 
 var _ AIAndModel = new(AIAndQwen36_27B)
@@ -558,13 +522,7 @@ func (AIAndGemma4_31B) MaxOutputTokenLimit() int { return 32768 }
 func (AIAndGemma4_31B) AcceptsImages() bool { return true }
 
 func (m AIAndGemma4_31B) GetAIAndParams() AIAndParams {
-	return AIAndParams{
-		ImageFile:        m.ImageFile,
-		PdfFiles:         m.PdfFiles,
-		StructuredOutput: m.StructuredOutput,
-		ReasoningEffort:  m.ReasoningEffort,
-		MaxOutputTokens:  m.MaxOutputTokens,
-	}
+	return AIAndParams(m)
 }
 
 var _ AIAndModel = new(AIAndGemma4_31B)
