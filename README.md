@@ -5,7 +5,7 @@
 [![Build](https://github.com/JazzJackrabbit/heimdall-ng/actions/workflows/build.yml/badge.svg)](https://github.com/JazzJackrabbit/heimdall-ng/actions/workflows/build.yml)
 [![License: BSD-3](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
 
-Heimdall is a Go library that sends LLM requests through one interface to OpenAI, Anthropic, Google Gemini, Vertex AI, xAI Grok, Perplexity and OpenRouter. A request names a primary model and a list of fallbacks. The router tries each model in order, and each provider tries its API keys in order, until one succeeds.
+Heimdall is a Go library that sends LLM requests through one interface to OpenAI, Anthropic, Google Gemini, Vertex AI, xAI Grok, Perplexity, OpenRouter and ai&. A request names a primary model and a list of fallbacks. The router tries each model in order, and each provider tries its API keys in order, until one succeeds.
 
 ## Features
 
@@ -78,6 +78,7 @@ Each provider is created with a list of API keys, which it tries in order. Regis
 | xAI Grok | `providers.NewGrok(keys)` | `models.Grok*` |
 | Perplexity | `providers.NewPerplexity(keys)` | `models.Sonar*` |
 | OpenRouter | `providers.NewOpenRouter(keys)` | `models.OpenRouterModel{ModelName: "..."}` |
+| ai& | `providers.NewAIAnd(keys)` | `models.AIAnd*` |
 
 Vertex AI authenticates with a service account key instead of API keys:
 
@@ -104,6 +105,19 @@ model := models.Claude5Sonnet{MaxOutputTokens: 16000}
 `Temperature` and `TopP` on the request are sent to Anthropic models that accept them. Other providers ignore them.
 
 Model types that implement `models.CostBreakdown` report their input and output prices per million tokens.
+
+### ai& models
+
+ai& serves open-weight models through an OpenAI-compatible API. Every ai& type implements `models.AIAndModel`, which reports the model's context window, output token limit, accepted reasoning levels and whether it takes images. Models that take images also take PDFs through `PdfFiles`.
+
+```go
+model := models.AIAndKimiK3{
+	ReasoningEffort: models.AIAndReasoningLow,
+	MaxOutputTokens: 8000,
+}
+```
+
+`ReasoningEffort` is sent as `reasoning_effort` when set. Each model accepts the levels returned by its `ReasoningEfforts` method, and `AIAndReasoningNone` turns reasoning off only on models that list it. `MaxOutputTokens` covers reasoning and answer together. The reasoning text is returned in `Thoughts` and is not passed to the stream handler.
 
 ### Streaming
 
@@ -300,6 +314,27 @@ Each Gemini type has a Vertex AI counterpart with the `Vertex` prefix, for examp
 
 </details>
 
+<details>
+<summary>ai&</summary>
+
+| Type | Model ID | Images and PDFs | Reasoning levels |
+| --- | --- | --- | --- |
+| `AIAndKimiK3` | moonshotai/kimi-k3 | yes | low, high, max |
+| `AIAndKimiK27Code` | moonshotai/kimi-k2.7-code | yes | high |
+| `AIAndGLM53` | zai-org/glm-5.3 | no | low, high, max |
+| `AIAndGLM53Flash` | zai-org/glm-5.3-flash | yes | low, high, max |
+| `AIAndGLM52` | zai-org/glm-5.2 | no | none, high, max |
+| `AIAndDeepSeekV4Pro` | deepseek-ai/deepseek-v4-pro | no | none, high, max |
+| `AIAndDeepSeekV41Flash` | deepseek-ai/deepseek-v4.1-flash | yes | none, high, max |
+| `AIAndDeepSeekV4Flash` | deepseek-ai/deepseek-v4-flash | no | none, high, max |
+| `AIAndQwen38_27B` | qwen/qwen3.8-27b | yes | none, low, medium, xhigh |
+| `AIAndQwen36_27B` | qwen/qwen3.6-27b | yes | none, high |
+| `AIAndGemma4_31B` | google/gemma-4-31b-it | yes | none, high |
+| `AIAndGPTOSS120B` | openai/gpt-oss-120b | no | low, medium, high |
+| `AIAndMotif3` | motif-technologies/motif-3 | no | none, high |
+
+</details>
+
 ## Development
 
 ```bash
@@ -307,7 +342,7 @@ go test ./...
 golangci-lint run
 ```
 
-Request-building and response-parsing tests run offline against local test servers. Tests that call a provider's API are skipped unless its credentials are set in `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `GROK_API_KEY` or `PERPLEXITY_API_KEY`. Vertex AI tests use `VERTEX_PROJECT_ID` and `VERTEX_LOCATION`. The [justfile](justfile) has per-provider test recipes and loads these variables from a `.env` file.
+Request-building and response-parsing tests run offline against local test servers. Tests that call a provider's API are skipped unless its credentials are set in `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `GROK_API_KEY`, `PERPLEXITY_API_KEY` or `AIAND_API_KEY`. Vertex AI tests use `VERTEX_PROJECT_ID` and `VERTEX_LOCATION`. The [justfile](justfile) has per-provider test recipes and loads these variables from a `.env` file.
 
 ## License
 

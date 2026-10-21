@@ -111,5 +111,19 @@ func GetAll() []string {
 		Grok46Alias,
 
 		Gemini25FlashImageModel,
+
+		AIAndKimiK3Alias,
+		AIAndKimiK27CodeAlias,
+		AIAndGLM53Alias,
+		AIAndGLM53FlashAlias,
+		AIAndGLM52Alias,
+		AIAndDeepSeekV4ProAlias,
+		AIAndDeepSeekV41FlashAlias,
+		AIAndDeepSeekV4FlashAlias,
+		AIAndQwen38_27BAlias,
+		AIAndQwen36_27BAlias,
+		AIAndGemma4_31BAlias,
+		AIAndGPTOSS120BAlias,
+		AIAndMotif3Alias,
 	}
 }
